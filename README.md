@@ -1,104 +1,93 @@
 # Price Tracker
 
-Day la de an Python 1 ban co ban. Ung dung dung de quet gia san pham,
-luu lich su gia vao MongoDB, so sanh gia hien tai voi lich su va gui email
-khi gia cham target.
+Đây là một đề án Python cơ bản. Ứng dụng cung cấp chức năng cào (scraping) giá sản phẩm từ các trang thương mại điện tử, lưu trữ dữ liệu lịch sử vào MongoDB, phân tích biến động giá và gửi email cảnh báo khi mức giá chạm ngưỡng mục tiêu (target price).
 
-Code duoc viet theo huong don gian, de doc, khong async, khong ORM, khong
-framework frontend.
+Mã nguồn được thiết kế theo hướng tối giản: không sử dụng kiến trúc bất đồng bộ (async), không dùng ORM phức tạp và không tích hợp framework frontend.
 
-## Chuc nang
+## Các tính năng chính
 
-- Nhap mot hoac nhieu URL san pham.
-- Quet gia bang `requests`.
-- Boc tach HTML bang `selectolax`.
-- Luu lich su vao MongoDB bang `pymongo`.
-- Xem gia thap nhat, cao nhat, gia trung binh.
-- Dua ra goi y: mua ngay, khong mua, hoac cho doi.
-- Luu target price.
-- Gui email canh bao bang `smtplib` neu da cau hinh SMTP.
+- Thu thập dữ liệu từ một hoặc nhiều URL sản phẩm.
+- Thực hiện cào dữ liệu HTTP thông qua `requests`.
+- Phân tích và bóc tách cấu trúc DOM (HTML) bằng `selectolax`.
+- Lưu trữ time-series dữ liệu giá vào MongoDB thông qua `pymongo`.
+- Phân tích thống kê: cung cấp giá thấp nhất, cao nhất và trung bình.
+- Động cơ khuyến nghị cơ bản: tính toán tín hiệu (mua ngay, không mua, chờ đợi).
+- Thiết lập mức giá mục tiêu và quản lý danh sách theo dõi (watchlist).
+- Gửi email cảnh báo qua giao thức SMTP (`smtplib`).
 
-## Cau truc file
+## Cấu trúc thư mục
 
 ```text
 DE_AN_PYTHON/
-|-- static/
-|   |-- index.html
-|   |-- styles.css
-|   `-- app.js
-|-- main.py
-|-- scraper.py
-|-- database.py
-|-- mailer.py
-|-- requirements.txt
-|-- .env.example
-`-- README.md
+├── static/
+│   ├── index.html
+│   ├── styles.css
+│   └── app.js
+├── main.py
+├── scraper.py
+├── database.py
+├── mailer.py
+├── requirements.txt
+├── .env.example
+└── README.md
 ```
 
-## Giai thich file
+## Chức năng các file
 
-- `main.py`: file chay FastAPI va khai bao cac API.
-- `scraper.py`: quet website va lay ten san pham, gia san pham.
-- `database.py`: ket noi MongoDB, luu gia, doc lich su, tinh phan tich gia.
-- `mailer.py`: gui email canh bao.
-- `static/index.html`: giao dien web.
-- `static/styles.css`: css cho giao dien.
-- `static/app.js`: javascript goi API va hien thi du lieu.
+- `main.py`: Điểm neo của ứng dụng, khởi tạo FastAPI server và định nghĩa các HTTP API endpoint.
+- `scraper.py`: Chịu trách nhiệm gọi HTTP request, phân tích DOM để trích xuất tên sản phẩm và giá trị từ các website.
+- `database.py`: Quản lý kết nối MongoDB, thực thi các truy vấn đọc/ghi lịch sử và logic phân tích giá trị.
+- `mailer.py`: Xử lý giao thức SMTP để đẩy email cảnh báo.
+- `static/index.html`: Giao diện người dùng tĩnh (HTML).
+- `static/styles.css`: Bản định kiểu hiển thị.
+- `static/app.js`: Xử lý tương tác phía client, gọi API và kết xuất dữ liệu lên DOM.
 
-## Cai dat lan dau
+## Quy trình cài đặt
 
 ```powershell
+# Tạo môi trường ảo
 python -m venv venv
+
+# Kích hoạt môi trường (PowerShell)
 .\venv\Scripts\Activate.ps1
+
+# Cài đặt thư viện phụ thuộc
 pip install -r requirements.txt
+
+# Khởi tạo biến môi trường
 Copy-Item .env.example .env
 ```
 
-## Chay app
+## Khởi động Ứng dụng
 
 ```powershell
+# Bắt buộc kích hoạt môi trường ảo trước khi chạy
 .\venv\Scripts\Activate.ps1
+
+# Chạy server FastAPI
 uvicorn main:app --reload
 ```
 
-Mo trinh duyet:
+Truy cập giao diện Web tại trình duyệt: `http://127.0.0.1:8000/`
 
-```text
-http://127.0.0.1:8000/
-```
+## Cấu hình MongoDB
 
-## MongoDB
+Ứng dụng mặc định kết nối tới: `mongodb://localhost:27017`
 
-App mac dinh ket noi toi:
+Nếu MongoDB Server chưa được khởi động, hệ thống vẫn duy trì tính năng bóc tách giá tức thời. Tuy nhiên, mọi luồng ghi lịch sử và quản lý watchlist sẽ bị rớt (drop).
 
-```text
-mongodb://localhost:27017
-```
+Khi MongoDB khả dụng, ứng dụng tự động cấp phát:
+- Database: `price_tracker_db`
+- Collections: `price_history`, `watchlist`
 
-Neu MongoDB Server chua chay thi app van quet duoc, nhung khong luu duoc
-lich su gia va target.
+## Cấu hình SMTP Email (Tùy chọn)
 
-Khi MongoDB chay dung, app se tao database:
+Để kích hoạt luồng cảnh báo qua email, bổ sung hoặc sửa đổi file `.env`:
 
-```text
-price_tracker_db
-```
-
-Va 2 collection:
-
-```text
-price_history
-watchlist
-```
-
-## SMTP email
-
-Neu muon gui email, sua file `.env`:
-
-```text
+```env
 SMTP_USERNAME=your_email@gmail.com
 SMTP_PASSWORD=your_google_app_password
 SMTP_FROM_EMAIL=your_email@gmail.com
 ```
 
-Neu khong cau hinh SMTP, app van chay binh thuong nhung khong gui email.
+Nếu cấu hình SMTP trống, ứng dụng sẽ tự động vô hiệu hóa module gửi thư, quy trình theo dõi giá vẫn vận hành bình thường.
