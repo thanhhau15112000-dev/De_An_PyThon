@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Price Tracker</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">De an Python</p>
+        <h1>He thong theo doi va canh bao gia</h1>
+        <p>
+          Ung dung co ban dung de quet gia san pham, luu lich su vao MongoDB,
+          so sanh gia va gui email khi gia cham target.
+        </p>
+      </div>
+      <div class="badge-card">
+        <span>#</span>
+
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="panel form-panel">
+        <div class="panel-head">
+          <h2>Quet gia san pham</h2>
+          <p>Moi dong la mot URL. Chuong trinh se quet lan luot bang vong lap for.</p>
+        </div>
+
+        <form id="scan-form">
+          <label for="url-input">Danh sach URL</label>
+          <textarea id="url-input" rows="7"
+            placeholder="https://cellphones.com.vn/iphone-15.html&#10;https://www.thegioididong.com/dtdd/iphone-15"></textarea>
+
+          <div class="button-row">
+            <button id="scan-button" type="submit">Bat dau quet</button>
+            <button id="sample-button" class="secondary" type="button">Nap URL mau</button>
+          </div>
+        </form>
+
+        <div class="summary">
+          <article>
+            <span>Tong URL</span>
+            <strong id="summary-total">0</strong>
+          </article>
+          <article>
+            <span>Thanh cong</span>
+            <strong id="summary-success">0</strong>
+          </article>
+          <article>
+            <span>That bai</span>
+            <strong id="summary-failed">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <aside class="panel watch-panel">
+        <div class="panel-head">
+          <h2>Danh sach target</h2>
+          <p>Luu muc gia mong muon va email nhan canh bao.</p>
+        </div>
+        <div id="watchlist" class="watchlist"></div>
+      </aside>
+
+      <section class="panel result-panel">
+        <div class="panel-head">
+          <h2>Ket qua moi nhat</h2>
+          <p>Gia hien tai duoc so sanh voi lich su da luu trong MongoDB.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>San pham</th>
+                <th>Gia</th>
+                <th>Phan tich</th>
+                <th>Target</th>
+                <th>Hanh dong</th>
+              </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="panel-head">
+          <h2>Lich su gia</h2>
+          <p>Bam nut Xem lich su de ve bieu do gia don gian.</p>
+        </div>
+        <div id="chart-empty" class="empty">Chua co lich su de hien thi.</div>
+        <div id="chart-shell" class="hidden">
+          <div class="chart-top">
+            <div>
+              <h3 id="chart-title">Lich su gia</h3>
+              <p id="chart-subtitle"></p>
+            </div>
+            <span id="chart-range"></span>
+          </div>
+          <svg id="history-chart" viewBox="0 0 640 240" preserveAspectRatio="none"></svg>
+          <div id="history-points" class="history-points"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+
+</html>
