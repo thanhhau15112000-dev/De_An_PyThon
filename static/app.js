@@ -51,7 +51,16 @@ function getUrls() {
     .filter((url) => url !== "");
 }
 
-async function callApi(url, options = {}) {
+// Determine API_BASE_URL dynamically based on current host, or override for Vercel
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://127.0.0.1:8000"
+  : "https://your-railway-app-url.up.railway.app"; // Cập nhật URL Railway tại đây sau khi deploy
+
+async function callApi(endpoint, options = {}) {
+  // Normalize endpoint to prevent double slashes
+  const path = endpoint.startsWith("/") ? endpoint : "/" + endpoint;
+  const url = API_BASE_URL + path;
+  
   const response = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     ...options,

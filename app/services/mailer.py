@@ -1,25 +1,20 @@
 import smtplib
 from email.message import EmailMessage
-from os import getenv
+import logging
+from app.core.config import settings
 
+logger = logging.getLogger(__name__)
 
-SMTP_HOST = getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(getenv("SMTP_PORT", "587"))
-SMTP_USERNAME = getenv("SMTP_USERNAME", "")
-SMTP_PASSWORD = getenv("SMTP_PASSWORD", "")
-SMTP_FROM_EMAIL = getenv("SMTP_FROM_EMAIL", SMTP_USERNAME)
-
-
-def send_price_alert(to_email, product_name, current_price, target_price, product_url):
-    if to_email == "":
+def send_price_alert_sync(to_email: str, product_name: str, current_price: str, target_price: int, product_url: str):
+    if not to_email:
         return False, "Chua nhap email nhan canh bao."
 
-    if SMTP_USERNAME == "" or SMTP_PASSWORD == "":
+    if not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
         return False, "Chua cau hinh SMTP trong file .env."
 
     message = EmailMessage()
     message["Subject"] = "Price Tracker - Gia da cham target"
-    message["From"] = SMTP_FROM_EMAIL
+    message["From"] = settings.SMTP_FROM_EMAIL or settings.SMTP_USERNAME
     message["To"] = to_email
 
     content = f"""
@@ -33,11 +28,12 @@ Link: {product_url}
     message.set_content(content)
 
     try:
-        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
+        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
         server.starttls()
-        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
         server.send_message(message)
         server.quit()
         return True, ""
     except Exception as error:
+        logger.error(f"Loi gui email: {error}")
         return False, str(error)

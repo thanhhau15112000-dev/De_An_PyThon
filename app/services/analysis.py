@@ -1,38 +1,8 @@
 from datetime import datetime
-from os import getenv
-
-from pymongo import MongoClient
-
-
-MONGO_URL = getenv("MONGODB_URL", "mongodb://localhost:27017")
-DB_NAME = getenv("MONGODB_DB_NAME", "price_tracker_db")
-
-client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=3000)
-db = client[DB_NAME]
-
-price_history = db["price_history"]
-watchlist = db["watchlist"]
-
+from app.database.connection import db_ctx
 
 def now():
     return datetime.now()
-
-
-def ping_database():
-    try:
-        client.admin.command("ping")
-        return True
-    except Exception:
-        return False
-
-
-def setup_database():
-    try:
-        price_history.create_index("url")
-        watchlist.create_index("url", unique=True)
-    except Exception:
-        pass
-
 
 def remove_id(document):
     if document is None:
@@ -42,26 +12,23 @@ def remove_id(document):
         document["_id"] = str(document["_id"])
     return document
 
-
-def save_price(product):
+async def save_price(product: dict):
     try:
-        price_history.insert_one(product)
+        await db_ctx.db["price_history"].insert_one(product)
         return True, ""
     except Exception as error:
         return False, str(error)
 
-
-def get_history(url, limit=30):
+async def get_history(url: str, limit: int = 30):
     try:
-        data = price_history.find({"url": url}).sort("scraped_at", -1).limit(limit)
-        data = list(data)
+        cursor = db_ctx.db["price_history"].find({"url": url}).sort("scraped_at", -1).limit(limit)
+        data = await cursor.to_list(length=limit)
         data.reverse()
         return [remove_id(item) for item in data]
     except Exception:
         return []
 
-
-def get_latest_prices(limit=20):
+async def get_latest_prices(limit: int = 20):
     try:
         pipeline = [
             {"$sort": {"scraped_at": -1}},
@@ -69,34 +36,48 @@ def get_latest_prices(limit=20):
             {"$replaceRoot": {"newRoot": "$item"}},
             {"$limit": limit},
         ]
-        data = list(price_history.aggregate(pipeline))
+        cursor = db_ctx.db["price_history"].aggregate(pipeline)
+        data = await cursor.to_list(length=limit)
         return [remove_id(item) for item in data]
     except Exception:
         return []
 
-
-def analyze_price(url, current_price):
-    history = get_history(url, 60)
-    prices = []
-
-    for item in history:
-        value = item.get("price_value")
-        if isinstance(value, int):
-            prices.append(value)
-
-    if len(prices) == 0 or current_price is None:
+async def analyze_price(url: str, current_price: int):
+    if current_price is None:
         return {
-            "sample_count": len(prices),
-            "low_price": None,
-            "high_price": None,
-            "average_price": None,
-            "buy_signal": "unknown",
-            "note": "Chua co lich su gia.",
+            "sample_count": 0, "low_price": None, "high_price": None,
+            "average_price": None, "buy_signal": "unknown", "note": "Gia hien tai khong hop le."
         }
 
-    low_price = min(prices)
-    high_price = max(prices)
-    average_price = round(sum(prices) / len(prices))
+    pipeline = [
+        {"$match": {"url": url, "price_value": {"$type": "number"}}},
+        {"$sort": {"scraped_at": -1}},
+        {"$limit": 60},
+        {"$group": {
+            "_id": None,
+            "low_price": {"$min": "$price_value"},
+            "high_price": {"$max": "$price_value"},
+            "average_price": {"$avg": "$price_value"},
+            "sample_count": {"$sum": 1}
+        }}
+    ]
+    
+    try:
+        cursor = db_ctx.db["price_history"].aggregate(pipeline)
+        result = await cursor.to_list(length=1)
+    except Exception:
+        result = []
+        
+    if not result:
+        return {
+            "sample_count": 0, "low_price": None, "high_price": None,
+            "average_price": None, "buy_signal": "unknown", "note": "Chua co lich su gia."
+        }
+        
+    stats = result[0]
+    low_price = stats["low_price"]
+    high_price = stats["high_price"]
+    average_price = round(stats["average_price"])
 
     if current_price <= low_price:
         signal = "good"
@@ -109,7 +90,7 @@ def analyze_price(url, current_price):
         note = "Gia tam on, co the cho them."
 
     return {
-        "sample_count": len(prices),
+        "sample_count": stats["sample_count"],
         "low_price": low_price,
         "high_price": high_price,
         "average_price": average_price,
@@ -117,10 +98,9 @@ def analyze_price(url, current_price):
         "note": note,
     }
 
-
-def save_target(url, target_price, email="", platform="", product_name=""):
+async def save_target(url: str, target_price: int, email: str = "", platform: str = "", product_name: str = ""):
     try:
-        watchlist.update_one(
+        await db_ctx.db["watchlist"].update_one(
             {"url": url},
             {
                 "$set": {
@@ -138,25 +118,24 @@ def save_target(url, target_price, email="", platform="", product_name=""):
     except Exception as error:
         return False, str(error)
 
-
-def get_targets(limit=30):
+async def get_targets(limit: int = 30):
     try:
-        data = watchlist.find({}).sort("updated_at", -1).limit(limit)
+        cursor = db_ctx.db["watchlist"].find({}).sort("updated_at", -1).limit(limit)
+        data = await cursor.to_list(length=limit)
         return [remove_id(item) for item in data]
     except Exception:
         return []
 
-
-def get_target_by_url(url):
+async def get_target_by_url(url: str):
     try:
-        return remove_id(watchlist.find_one({"url": url}))
+        item = await db_ctx.db["watchlist"].find_one({"url": url})
+        return remove_id(item)
     except Exception:
         return None
 
-
-def update_target_after_scan(result):
+async def update_target_after_scan(result: dict):
     try:
-        watchlist.update_one(
+        await db_ctx.db["watchlist"].update_one(
             {"url": result["url"]},
             {
                 "$set": {
