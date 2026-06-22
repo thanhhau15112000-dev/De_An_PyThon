@@ -54,7 +54,7 @@ function getUrls() {
 // Determine API_BASE_URL dynamically based on current host, or override for Vercel
 const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
   ? "http://127.0.0.1:8000"
-  : "https://your-railway-app-url.up.railway.app"; // Cập nhật URL Railway tại đây sau khi deploy
+  : "https://pricetracker-be.onrender.com";
 
 async function callApi(endpoint, options = {}) {
   // Normalize endpoint to prevent double slashes
