@@ -17,24 +17,12 @@ const chartShell = document.getElementById("chart-shell");
 const chartTitle = document.getElementById("chart-title");
 const chartSubtitle = document.getElementById("chart-subtitle");
 const chartRange = document.getElementById("chart-range");
-const historyPoints = document.getElementById("history-points");
 
-// Chart.js instance
 let myChart = null;
 
 function formatMoney(value) {
-  if (typeof value !== "number") {
-    return "Chưa có";
-  }
+  if (typeof value !== "number") return "Chưa có";
   return value.toLocaleString("vi-VN") + "đ";
-}
-
-function formatDate(value) {
-  if (!value) {
-    return "Chưa cập nhật";
-  }
-  const date = new Date(value);
-  return date.toLocaleString("vi-VN");
 }
 
 function escapeHtml(value) {
@@ -59,9 +47,7 @@ const API_BASE_URL = window.location.hostname === "localhost" || window.location
 
 async function callApi(endpoint, options = {}) {
   const path = endpoint.startsWith("/") ? endpoint : "/" + endpoint;
-  const url = API_BASE_URL + path;
-  
-  const response = await fetch(url, {
+  const response = await fetch(API_BASE_URL + path, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
@@ -77,54 +63,56 @@ function getSignalText(signal) {
 
 function renderResults(items) {
   if (items.length === 0) {
-    resultsBody.innerHTML = `<tr><td colspan="5"><div class="empty"><i class="ph ph-magnifying-glass empty-icon"></i><span>Chưa có dữ liệu.</span></div></td></tr>`;
+    resultsBody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Chưa có dữ liệu.</div></td></tr>`;
     return;
   }
 
   let html = "";
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
+  for (let item of items) {
     const analysis = item.analysis || {};
     const hasPrice = item.success !== false && (item.price || item.price_value);
-    const storageText = item.storage_status === "saved" ? "Đã lưu MongoDB" : "Chưa lưu MongoDB";
     const priceText = hasPrice ? escapeHtml(item.price || formatMoney(item.price_value)) : "Thất bại";
-    const errorText = hasPrice ? "Tồn kho: " + escapeHtml(item.availability || "unknown") : escapeHtml(item.error);
 
     html += `
       <tr>
         <td>
-          <div class="product-name">${escapeHtml(item.product_name || "Không có tên sản phẩm")}</div>
-          <span class="sub"><i class="ph ph-storefront"></i> ${escapeHtml(item.platform)} - ${formatDate(item.scraped_at)}</span>
-          <a class="product-url" href="${escapeHtml(item.url)}" target="_blank"><i class="ph ph-link-simple"></i> Mở link</a>
-        </td>
-        <td>
-          <div class="price-main">${priceText}</div>
-          <span class="sub"><i class="ph ph-package"></i> ${errorText}</span>
-          <span class="sub"><i class="ph ph-database"></i> ${storageText}</span>
-        </td>
-        <td>
-          <span class="badge ${item.buy_signal || "unknown"}">${getSignalText(item.buy_signal)}</span>
-          <span class="analysis-note">Thấp nhất: ${formatMoney(analysis.low_price)}<br/>Trung bình: ${formatMoney(analysis.average_price)}</span>
-        </td>
-        <td>
-          <div class="target-box">
-            <span class="badge ${item.alert_hit ? "good glow-badge" : "unknown"}">${item.target_price ? "Target " + formatMoney(item.target_price) : "Chưa có target"}</span>
-            <input type="number" placeholder="Mức giá mong muốn" data-target-price />
-            <input type="email" placeholder="Email nhận cảnh báo" data-target-email />
-            <button class="mini-btn" data-save-target><i class="ph ph-floppy-disk"></i> Lưu Target</button>
+          <div class="item-title">${escapeHtml(item.product_name || "Không có tên sản phẩm")}</div>
+          <div class="item-meta">
+            <i class="ph ph-storefront"></i> ${escapeHtml(item.platform)}
+          </div>
+          <div class="item-meta" style="margin-top: 4px;">
+            <a href="${escapeHtml(item.url)}" target="_blank"><i class="ph ph-link"></i> Mở link</a>
           </div>
         </td>
         <td>
-          <button class="secondary-btn" style="padding: 10px 16px; font-size: 0.9rem;"
+          <div class="price-lg">${priceText}</div>
+          <div class="status-row">
+            Tồn kho: ${hasPrice ? escapeHtml(item.availability || "unknown") : escapeHtml(item.error)}
+          </div>
+        </td>
+        <td>
+          <span class="badge ${item.buy_signal || "unknown"}">${getSignalText(item.buy_signal)}</span>
+          <div class="status-row" style="margin-top: 8px;">Thấp: ${formatMoney(analysis.low_price)}</div>
+          <div class="status-row">TB: ${formatMoney(analysis.average_price)}</div>
+        </td>
+        <td>
+          <div class="target-form">
+            <span class="badge ${item.alert_hit ? "good" : "unknown"}">${item.target_price ? "Target: " + formatMoney(item.target_price) : "Chưa có target"}</span>
+            <input type="number" class="target-input" placeholder="Giá mục tiêu" data-target-price />
+            <input type="email" class="target-input" placeholder="Email nhận cảnh báo" data-target-email />
+            <button class="btn btn-text" style="padding: 6px 0; justify-content: flex-start;" data-save-target>Lưu Target</button>
+          </div>
+        </td>
+        <td class="text-right">
+          <button class="btn btn-text"
             data-history-url="${escapeHtml(item.url)}"
-            data-product-name="${escapeHtml(item.product_name)}"
-            data-platform="${escapeHtml(item.platform)}"><i class="ph ph-chart-line-up"></i> Xem lịch sử</button>
+            data-product-name="${escapeHtml(item.product_name)}">
+            <i class="ph ph-chart-line-up"></i> Xem biểu đồ
+          </button>
         </td>
       </tr>
     `;
   }
-
   resultsBody.innerHTML = html;
 }
 
@@ -141,19 +129,19 @@ async function loadWatchlist() {
   const items = data.items || [];
 
   if (items.length === 0) {
-    watchlistElement.innerHTML = `<div class="empty"><i class="ph ph-bookmark-simple empty-icon"></i><span>Chưa có target nào.</span></div>`;
+    watchlistElement.innerHTML = `<div class="empty-state">Chưa có mục tiêu giá nào.</div>`;
     return;
   }
 
   let html = "";
   for (let item of items) {
     html += `
-      <article class="watch-item">
+      <div class="watch-card">
         <h3>${escapeHtml(item.product_name || item.platform || "Sản phẩm")}</h3>
-        <p><a href="${escapeHtml(item.url)}" target="_blank" style="color: inherit; text-decoration: none;">${escapeHtml(item.url)}</a></p>
-        <p>Target: <strong style="font-family: var(--font-heading)">${formatMoney(item.target_price)}</strong></p>
-        <p>Email: ${escapeHtml(item.email || "Chưa nhập")}</p>
-      </article>
+        <a href="${escapeHtml(item.url)}" target="_blank" class="url">${escapeHtml(item.url)}</a>
+        <div class="target-val">${formatMoney(item.target_price)}</div>
+        <div class="email"><i class="ph ph-envelope-simple"></i> ${escapeHtml(item.email || "Chưa nhập email")}</div>
+      </div>
     `;
   }
   watchlistElement.innerHTML = html;
@@ -161,13 +149,10 @@ async function loadWatchlist() {
 
 async function runScan() {
   const urls = getUrls();
-  if (urls.length === 0) {
-    alert("Hãy nhập ít nhất 1 URL.");
-    return;
-  }
+  if (urls.length === 0) return alert("Nhập ít nhất 1 URL.");
 
   scanButton.disabled = true;
-  scanButton.innerHTML = `<i class="ph ph-spinner ph-spin"></i> Đang quét...`;
+  scanButton.textContent = "Đang quét...";
 
   try {
     const data = await callApi("/api/scan", {
@@ -181,12 +166,11 @@ async function runScan() {
     summaryFailed.textContent = data.summary.failed;
     await loadWatchlist();
   } catch (error) {
-    console.error(error);
-    alert("Đã xảy ra lỗi khi quét dữ liệu.");
+    alert("Lỗi khi quét dữ liệu.");
   }
 
   scanButton.disabled = false;
-  scanButton.innerHTML = `<i class="ph ph-play-circle"></i> Bắt đầu quét`;
+  scanButton.textContent = "Bắt đầu quét";
 }
 
 async function loadHistory(url, productName) {
@@ -196,7 +180,7 @@ async function loadHistory(url, productName) {
   if (history.length === 0) {
     chartShell.classList.add("hidden");
     chartEmpty.classList.remove("hidden");
-    chartEmpty.querySelector("span").textContent = "Chưa có lịch sử giá.";
+    chartEmpty.querySelector("span").textContent = "Sản phẩm này chưa có lịch sử giá.";
     return;
   }
 
@@ -204,48 +188,42 @@ async function loadHistory(url, productName) {
   chartShell.classList.remove("hidden");
   chartTitle.textContent = productName || "Lịch sử giá";
   chartSubtitle.textContent = url;
+  chartSubtitle.href = url;
 
   const prices = history.map((item) => item.price_value).filter((value) => typeof value === "number");
   const min = Math.min(...prices);
   const max = Math.max(...prices);
   chartRange.textContent = formatMoney(min) + " - " + formatMoney(max);
 
-  // Render Chart.js
   const ctx = document.getElementById("history-chart-canvas").getContext("2d");
-  
-  if (myChart) {
-    myChart.destroy();
-  }
+  if (myChart) myChart.destroy();
 
   const labels = history.map(item => {
     const d = new Date(item.scraped_at);
-    return d.toLocaleDateString('vi-VN') + " " + d.getHours() + ":" + String(d.getMinutes()).padStart(2, '0');
-  }).reverse(); // API might return descending, so reverse for chart left-to-right
+    return d.getDate() + '/' + (d.getMonth()+1) + ' ' + d.getHours() + ":" + String(d.getMinutes()).padStart(2, '0');
+  }).reverse();
 
   const chartData = history.map(item => item.price_value).reverse();
 
-  // Create gradient for chart fill
-  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-  gradient.addColorStop(0, 'rgba(14, 165, 233, 0.5)'); // accent-primary with opacity
-  gradient.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+  gradient.addColorStop(0, 'rgba(225, 29, 72, 0.2)'); // --primary
+  gradient.addColorStop(1, 'rgba(225, 29, 72, 0)');
 
   myChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels,
       datasets: [{
-        label: 'Mức giá',
         data: chartData,
-        borderColor: '#0ea5e9', // accent-primary
+        borderColor: '#E11D48',
         backgroundColor: gradient,
-        borderWidth: 3,
-        pointBackgroundColor: '#8b5cf6', // accent-secondary
-        pointBorderColor: '#fff',
+        borderWidth: 2,
+        pointBackgroundColor: '#FFFFFF',
+        pointBorderColor: '#E11D48',
         pointBorderWidth: 2,
         pointRadius: 4,
-        pointHoverRadius: 6,
         fill: true,
-        tension: 0.4 // Smooth curves
+        tension: 0.3
       }]
     },
     options: {
@@ -254,11 +232,11 @@ async function loadHistory(url, productName) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(17, 24, 39, 0.9)',
-          titleFont: { family: 'Inter', size: 13 },
-          bodyFont: { family: 'Inter', size: 14, weight: 'bold' },
+          backgroundColor: '#111827',
+          titleFont: { family: 'DM Sans', size: 13 },
+          bodyFont: { family: 'DM Sans', size: 14, weight: 'bold' },
           padding: 12,
-          cornerRadius: 8,
+          cornerRadius: 6,
           displayColors: false,
           callbacks: {
             label: function(context) {
@@ -269,14 +247,15 @@ async function loadHistory(url, productName) {
       },
       scales: {
         x: {
-          grid: { color: 'rgba(255, 255, 255, 0.05)' },
-          ticks: { color: '#9ca3af', font: { family: 'Inter' }, maxTicksLimit: 8 }
+          grid: { display: false },
+          ticks: { color: '#6B7280', font: { family: 'DM Sans' }, maxTicksLimit: 6 }
         },
         y: {
-          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          border: { display: false },
+          grid: { color: '#F3F4F6' },
           ticks: {
-            color: '#9ca3af',
-            font: { family: 'Inter' },
+            color: '#6B7280',
+            font: { family: 'DM Sans' },
             callback: function(value) {
               if(value >= 1000000) return (value / 1000000).toLocaleString('vi-VN') + ' Tr';
               if(value >= 1000) return (value / 1000).toLocaleString('vi-VN') + ' K';
@@ -287,16 +266,6 @@ async function loadHistory(url, productName) {
       }
     }
   });
-
-  // Render recent history points below chart
-  historyPoints.innerHTML = history
-    .slice(0, 8) // Get top 8 recent
-    .map((item) => `
-      <article class="history-card">
-        <strong>${formatMoney(item.price_value)}</strong>
-        <div>${formatDate(item.scraped_at)}</div>
-      </article>`)
-    .join("");
 }
 
 async function saveTarget(button) {
@@ -306,34 +275,23 @@ async function saveTarget(button) {
   const emailInput = row.querySelector("[data-target-email]");
 
   button.disabled = true;
-  button.innerHTML = `<i class="ph ph-spinner ph-spin"></i> Đang lưu...`;
+  button.textContent = "Đang lưu...";
 
   try {
-    await callApi(
-      "/api/watchlist?platform=" +
-        encodeURIComponent(infoButton.dataset.platform) +
-        "&product_name=" +
-        encodeURIComponent(infoButton.dataset.productName),
-      {
+    await callApi("/api/watchlist?platform=auto&product_name=auto", {
         method: "POST",
         body: JSON.stringify({
           url: infoButton.dataset.historyUrl,
           target_price: Number(priceInput.value),
           email: emailInput.value,
         }),
-      },
-    );
-
+      });
     await loadWatchlist();
-    // Simulate refresh row UI by reloading overview
     await loadOverview();
-    alert("Đã lưu target thành công.");
-  } catch (error) {
-    alert("Lỗi khi lưu target.");
-  }
+  } catch (error) {}
 
   button.disabled = false;
-  button.innerHTML = `<i class="ph ph-floppy-disk"></i> Lưu Target`;
+  button.textContent = "Lưu Target";
 }
 
 form.addEventListener("submit", async function (event) {
@@ -341,19 +299,16 @@ form.addEventListener("submit", async function (event) {
   await runScan();
 });
 
-sampleButton.addEventListener("click", function () {
+sampleButton.addEventListener("click", () => {
   urlInput.value = sampleUrls.join("\n");
 });
 
 resultsBody.addEventListener("click", async function (event) {
   const button = event.target.closest("button");
-  if (!button) {
-    return;
-  }
+  if (!button) return;
 
   if (button.dataset.historyUrl) {
-    // Scroll to chart
-    chartShell.parentElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    chartShell.parentElement.scrollIntoView({ behavior: "smooth", block: "start" });
     await loadHistory(button.dataset.historyUrl, button.dataset.productName);
   }
 

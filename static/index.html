@@ -4,142 +4,114 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Price Tracker | Pro</title>
+  <title>Price Tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
 <body>
-  <div class="background-effects">
-    <div class="glow glow-1"></div>
-    <div class="glow glow-2"></div>
-    <div class="glow glow-3"></div>
-  </div>
-  
   <div class="page">
-    <header class="hero glass-panel">
-      <div class="hero-content">
-        <p class="eyebrow"><i class="ph ph-rocket-launch"></i> Đề án Python</p>
-        <h1>Hệ thống Theo dõi & Cảnh báo Giá</h1>
-        <p>
-          Ứng dụng cơ bản dùng để quét giá sản phẩm, lưu lịch sử vào MongoDB,
-          so sánh giá và gửi email khi giá chạm target.
-        </p>
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <i class="ph-fill ph-trend-up logo-icon"></i>
+          <h1>Tracker</h1>
+        </div>
       </div>
-      <div class="badge-card">
-        <i class="ph ph-chart-line-up badge-icon"></i>
-        <span>Tracker</span>
-        <strong>Active</strong>
+      <div class="header-right">
+        <div class="stat-pill">
+          <span class="stat-label">Tổng</span>
+          <strong id="summary-total">0</strong>
+        </div>
+        <div class="stat-pill success">
+          <span class="stat-label">Thành công</span>
+          <strong id="summary-success">0</strong>
+        </div>
+        <div class="stat-pill error">
+          <span class="stat-label">Thất bại</span>
+          <strong id="summary-failed">0</strong>
+        </div>
       </div>
     </header>
 
-    <main class="grid">
-      <section class="panel form-panel glass-panel">
-        <div class="panel-head">
-          <h2><i class="ph ph-scan"></i> Quét giá sản phẩm</h2>
-          <p>Mỗi dòng là một URL. Chương trình sẽ quét lần lượt bằng vòng lặp for.</p>
-        </div>
-
-        <form id="scan-form">
-          <label for="url-input">Danh sách URL</label>
-          <div class="input-wrapper">
-            <i class="ph ph-link input-icon"></i>
-            <textarea id="url-input" rows="5"
-              placeholder="https://cellphones.com.vn/iphone-15.html&#10;https://www.thegioididong.com/dtdd/iphone-15"></textarea>
+    <main class="main-layout">
+      
+      <div class="left-col">
+        <section class="section">
+          <div class="section-header">
+            <h2>Quét sản phẩm</h2>
           </div>
+          <form id="scan-form" class="clean-form">
+            <div class="input-group">
+              <i class="ph ph-link input-icon"></i>
+              <textarea id="url-input" rows="4"
+                placeholder="Nhập danh sách URL sản phẩm..."></textarea>
+            </div>
+            <div class="action-row">
+              <button id="scan-button" type="submit" class="btn btn-primary">Bắt đầu quét</button>
+              <button id="sample-button" class="btn btn-text" type="button">URL mẫu</button>
+            </div>
+          </form>
+        </section>
 
-          <div class="button-row">
-            <button id="scan-button" type="submit" class="primary-btn">
-              <i class="ph ph-play-circle"></i> Bắt đầu quét
-            </button>
-            <button id="sample-button" class="secondary-btn" type="button">
-              <i class="ph ph-magic-wand"></i> Nạp URL mẫu
-            </button>
+        <section class="section">
+          <div class="section-header">
+            <h2>Lịch sử giá</h2>
           </div>
-        </form>
-
-        <div class="summary">
-          <article class="glass-card">
-            <div class="summary-icon blue"><i class="ph ph-list-numbers"></i></div>
-            <div class="summary-info">
-              <span>Tổng URL</span>
-              <strong id="summary-total">0</strong>
-            </div>
-          </article>
-          <article class="glass-card">
-            <div class="summary-icon green"><i class="ph ph-check-circle"></i></div>
-            <div class="summary-info">
-              <span>Thành công</span>
-              <strong id="summary-success">0</strong>
-            </div>
-          </article>
-          <article class="glass-card">
-            <div class="summary-icon red"><i class="ph ph-x-circle"></i></div>
-            <div class="summary-info">
-              <span>Thất bại</span>
-              <strong id="summary-failed">0</strong>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <aside class="panel watch-panel glass-panel">
-        <div class="panel-head">
-          <h2><i class="ph ph-target"></i> Danh sách Target</h2>
-          <p>Lưu mức giá mong muốn và email nhận cảnh báo.</p>
-        </div>
-        <div id="watchlist" class="watchlist"></div>
-      </aside>
-
-      <section class="panel result-panel glass-panel">
-        <div class="panel-head">
-          <h2><i class="ph ph-table"></i> Kết quả mới nhất</h2>
-          <p>Giá hiện tại được so sánh với lịch sử đã lưu trong MongoDB.</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Sản phẩm</th>
-                <th>Giá</th>
-                <th>Phân tích</th>
-                <th>Target</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody id="results-body"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="panel chart-panel glass-panel">
-        <div class="panel-head">
-          <h2><i class="ph ph-trend-up"></i> Lịch sử giá</h2>
-          <p>Bấm nút 'Xem lịch sử' ở bảng trên để vẽ biểu đồ.</p>
-        </div>
-        <div id="chart-empty" class="empty">
-          <i class="ph ph-chart-line empty-icon"></i>
-          <span>Chưa có lịch sử để hiển thị.</span>
-        </div>
-        <div id="chart-shell" class="hidden">
-          <div class="chart-top">
-            <div class="chart-info">
-              <h3 id="chart-title">Lịch sử giá</h3>
-              <p id="chart-subtitle"></p>
-            </div>
-            <span id="chart-range" class="badge glow-badge"></span>
+          <div id="chart-empty" class="chart-empty">
+            <i class="ph ph-chart-line-up"></i>
+            <span>Chọn một sản phẩm để xem biểu đồ</span>
           </div>
-          <div class="canvas-container">
-            <canvas id="history-chart-canvas"></canvas>
+          <div id="chart-shell" class="chart-shell hidden">
+            <div class="chart-header">
+              <div>
+                <h3 id="chart-title" class="chart-title"></h3>
+                <a id="chart-subtitle" class="chart-subtitle" target="_blank"></a>
+              </div>
+              <div id="chart-range" class="chart-range"></div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="history-chart-canvas"></canvas>
+            </div>
           </div>
-          <div id="history-points" class="history-points"></div>
-        </div>
-      </section>
+        </section>
+      </div>
+
+      <div class="right-col">
+        <section class="section">
+          <div class="section-header">
+            <h2>Mục tiêu giá</h2>
+          </div>
+          <div id="watchlist" class="watchlist"></div>
+        </section>
+      </div>
+
     </main>
+
+    <section class="section full-width">
+      <div class="section-header">
+        <h2>Kết quả</h2>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Sản phẩm</th>
+              <th>Trạng thái giá</th>
+              <th>Phân tích</th>
+              <th>Cài đặt cảnh báo</th>
+              <th class="text-right">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </section>
+
   </div>
 
   <script src="/app.js"></script>
