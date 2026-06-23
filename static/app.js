@@ -118,9 +118,11 @@ function renderResults(items) {
           </div>
         </td>
         <td>
-          <div class="ai-insight-cell" data-url="${escapeHtml(item.url)}" data-product="${escapeHtml(item.product_name || "Sản phẩm")}">
-            <span style="color: var(--text-muted); font-size: 0.85rem;"><i class="ph ph-spinner-gap ph-spin"></i> Chờ AI...</span>
-          </div>
+          <button class="btn btn-text" style="color: var(--primary);"
+            data-ai-url="${escapeHtml(item.url)}"
+            data-ai-product="${escapeHtml(item.product_name || "Sản phẩm")}">
+            <i class="ph-fill ph-robot"></i> Xem phân tích
+          </button>
         </td>
         <td class="text-right">
           <button class="btn btn-text"
@@ -134,34 +136,101 @@ function renderResults(items) {
   }
   resultsBody.innerHTML = html;
   
-  // Kích hoạt việc tải AI insight
-  fetchAiInsights();
+  // Đã bỏ auto fetch, khi nào user bấm xem phân tích mới fetch qua Chat API
 }
 
-async function fetchAiInsights() {
-  const cells = document.querySelectorAll('.ai-insight-cell');
-  for (const cell of cells) {
-    const url = cell.getAttribute('data-url');
-    const productName = cell.getAttribute('data-product');
-    if (!url) continue;
-    if (cell.getAttribute('data-fetched') === 'true') continue;
-    cell.setAttribute('data-fetched', 'true');
+const aiFab = document.getElementById("ai-fab");
+const aiSidebar = document.getElementById("ai-sidebar");
+const aiSidebarOverlay = document.getElementById("ai-sidebar-overlay");
+const aiSidebarClose = document.getElementById("ai-sidebar-close");
+const aiChatBody = document.getElementById("ai-chat-body");
+const aiChatForm = document.getElementById("ai-chat-form");
+const aiChatInput = document.getElementById("ai-chat-input");
+const aiChatSubmit = document.getElementById("ai-chat-submit");
 
-    try {
-      const data = await callApi(`/api/ai-insight?url=${encodeURIComponent(url)}&product_name=${encodeURIComponent(productName)}`);
-      if (data.insight) {
-        // Chuyển markdown in đậm cơ bản thành HTML
-        let formatted = data.insight.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--primary);">$1</strong>');
-        formatted = formatted.replace(/\n/g, '<br>');
-        cell.innerHTML = `<div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-dark);">${formatted}</div>`;
-      } else {
-        cell.innerHTML = `<span style="color: var(--danger); font-size: 0.85rem;">Lỗi phân tích</span>`;
-      }
-    } catch (e) {
-      cell.innerHTML = `<span style="color: var(--danger); font-size: 0.85rem;">Lỗi kết nối AI</span>`;
-    }
+let currentChatUrl = null;
+let currentChatProduct = null;
+let chatHistory = [];
+
+function toggleAiSidebar() {
+  aiSidebar.classList.toggle("hidden");
+  aiSidebarOverlay.classList.toggle("hidden");
+}
+
+aiFab.addEventListener("click", toggleAiSidebar);
+aiSidebarClose.addEventListener("click", toggleAiSidebar);
+aiSidebarOverlay.addEventListener("click", toggleAiSidebar);
+
+function renderChatMessages() {
+  if (chatHistory.length === 0) {
+    aiChatBody.innerHTML = `
+      <div class="chat-empty-state">
+        <i class="ph-fill ph-robot"></i>
+        <p>Xin chào! Tôi có thể giúp bạn phân tích giá của sản phẩm nào?</p>
+      </div>
+    `;
+    return;
   }
+  
+  let html = "";
+  for (let msg of chatHistory) {
+    let roleClass = msg.role === "user" ? "user" : "ai";
+    let formatted = msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    html += `
+      <div class="chat-message ${roleClass}">
+        <div class="chat-bubble">${formatted}</div>
+      </div>
+    `;
+  }
+  aiChatBody.innerHTML = html;
+  aiChatBody.scrollTop = aiChatBody.scrollHeight;
 }
+
+aiChatForm.addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const text = aiChatInput.value.trim();
+  if (!text || !currentChatUrl) return;
+  
+  aiChatInput.value = "";
+  chatHistory.push({ role: "user", content: text });
+  chatHistory.push({ role: "ai", content: "<span class='loading-dots'>Đang suy nghĩ</span>" });
+  renderChatMessages();
+  
+  aiChatInput.disabled = true;
+  aiChatSubmit.disabled = true;
+  
+  try {
+    const apiHistory = chatHistory.slice(0, -2).map(msg => ({
+      role: msg.role === "ai" ? "model" : "user",
+      parts: msg.content
+    }));
+    
+    const data = await callApi("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({
+        url: currentChatUrl,
+        product_name: currentChatProduct,
+        message: text,
+        history: apiHistory
+      })
+    });
+    
+    chatHistory.pop(); // Xóa loading
+    if (data.reply) {
+      chatHistory.push({ role: "ai", content: data.reply });
+    } else {
+      chatHistory.push({ role: "ai", content: "Lỗi: " + (data.error || "Không có phản hồi") });
+    }
+  } catch(err) {
+    chatHistory.pop();
+    chatHistory.push({ role: "ai", content: "Lỗi kết nối đến máy chủ AI." });
+  }
+  
+  renderChatMessages();
+  aiChatInput.disabled = false;
+  aiChatSubmit.disabled = false;
+  aiChatInput.focus();
+});
 
 async function loadOverview() {
   const data = await callApi("/api/overview?limit=20");
@@ -364,6 +433,49 @@ resultsBody.addEventListener("click", async function (event) {
   if (button.dataset.historyUrl) {
     chartShell.parentElement.scrollIntoView({ behavior: "smooth", block: "start" });
     await loadHistory(button.dataset.historyUrl, button.dataset.productName);
+  }
+
+  if (button.hasAttribute("data-ai-url")) {
+    const url = button.getAttribute("data-ai-url");
+    const productName = button.getAttribute("data-ai-product");
+    
+    toggleAiSidebar();
+    
+    if (url !== currentChatUrl) {
+      currentChatUrl = url;
+      currentChatProduct = productName;
+      chatHistory = [];
+      
+      chatHistory.push({ role: "ai", content: "<span class='loading-dots'>Đang phân tích lịch sử giá</span>" });
+      renderChatMessages();
+      aiChatInput.disabled = true;
+      aiChatSubmit.disabled = true;
+      
+      callApi("/api/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          url: url,
+          product_name: productName,
+          message: "Hãy phân tích lịch sử giá của sản phẩm này và cho tôi lời khuyên.",
+          history: []
+        })
+      }).then(data => {
+        chatHistory.pop();
+        if (data.reply) {
+          chatHistory.push({ role: "ai", content: data.reply });
+        } else {
+          chatHistory.push({ role: "ai", content: "Lỗi phân tích." });
+        }
+        renderChatMessages();
+        aiChatInput.disabled = false;
+        aiChatSubmit.disabled = false;
+        aiChatInput.focus();
+      }).catch(err => {
+        chatHistory.pop();
+        chatHistory.push({ role: "ai", content: "Lỗi kết nối máy chủ AI." });
+        renderChatMessages();
+      });
+    }
   }
 
   if (button.hasAttribute("data-toggle-target")) {

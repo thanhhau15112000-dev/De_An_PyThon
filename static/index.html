@@ -114,7 +114,43 @@
 
   </div>
 
-  <script src="/app.js?v=4"></script>
+  <!-- Nút FAB AI -->
+  <button id="ai-fab" class="ai-fab" title="Trợ lý AI">
+    <i class="ph-fill ph-robot"></i>
+  </button>
+
+  <!-- Lớp phủ mờ -->
+  <div id="ai-sidebar-overlay" class="sidebar-overlay hidden"></div>
+
+  <!-- Sidebar Chatbot -->
+  <div id="ai-sidebar" class="ai-sidebar hidden">
+    <div class="ai-sidebar-header">
+      <div class="ai-sidebar-title">
+        <i class="ph-fill ph-robot"></i> <span>Chuyên gia Tài chính</span>
+      </div>
+      <button id="ai-sidebar-close" class="btn btn-text" style="padding: 4px;" title="Đóng">
+        <i class="ph ph-x" style="font-size: 1.25rem;"></i>
+      </button>
+    </div>
+    
+    <div id="ai-chat-body" class="ai-sidebar-body">
+      <div class="chat-empty-state">
+        <i class="ph-fill ph-robot"></i>
+        <p>Xin chào! Tôi có thể giúp bạn phân tích giá của sản phẩm nào?</p>
+      </div>
+    </div>
+
+    <div class="ai-sidebar-footer">
+      <form id="ai-chat-form" class="ai-chat-form">
+        <input type="text" id="ai-chat-input" placeholder="Hỏi AI về sản phẩm..." autocomplete="off" disabled />
+        <button type="submit" id="ai-chat-submit" class="btn btn-primary" style="padding: 10px;" title="Gửi" disabled>
+          <i class="ph-fill ph-paper-plane-right"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/app.js?v=5"></script>
 </body>
 
 </html>

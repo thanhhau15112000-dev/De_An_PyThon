@@ -48,3 +48,47 @@ Hãy phân tích ngắn gọn và đưa ra lời khuyên.
         return response.text.strip()
     except Exception as e:
         return f"Lỗi khi kết nối AI: {str(e)}"
+
+async def chat_with_ai(product_name: str, history_data: list, message: str, chat_history: list):
+    if not API_KEY:
+        return "Lỗi: Chưa cấu hình GEMINI_API_KEY trong file .env"
+
+    try:
+        model = genai.GenerativeModel("gemini-3.5-flash")
+        
+        if history_data:
+            latest = history_data[-1]
+            current_price = latest.get("price_value", 0)
+            prices = [item.get("price_value", 0) for item in history_data if isinstance(item.get("price_value"), (int, float))]
+            if prices:
+                min_price = min(prices)
+                max_price = max(prices)
+                avg_price = sum(prices) / len(prices)
+            else:
+                min_price = max_price = avg_price = current_price
+                
+            context = f"""
+Thông tin về sản phẩm "{product_name}":
+- Giá hiện tại: {current_price:,} VNĐ
+- Mức giá thấp nhất: {min_price:,} VNĐ
+- Mức giá cao nhất: {max_price:,} VNĐ
+- Giá trung bình: {avg_price:,.0f} VNĐ
+"""
+        else:
+            context = f"Sản phẩm '{product_name}' chưa có lịch sử giá."
+
+        formatted_history = []
+        for msg in chat_history:
+            formatted_history.append({"role": msg["role"], "parts": [msg["parts"]]})
+
+        chat = model.start_chat(history=formatted_history)
+        
+        if not chat_history:
+            full_message = f"Bạn là một chuyên gia tài chính. {context}\n\nYêu cầu của người dùng: {message}"
+        else:
+            full_message = message
+
+        response = chat.send_message(full_message)
+        return response.text.strip()
+    except Exception as e:
+        return f"Lỗi khi kết nối AI: {str(e)}"
