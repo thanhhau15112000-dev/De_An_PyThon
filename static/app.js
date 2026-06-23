@@ -449,11 +449,13 @@ async function saveTarget(button) {
   const priceInput = row.querySelector("[data-target-price]");
   const emailInput = row.querySelector("[data-target-email]");
 
+  const productName = infoButton.dataset.productName || "Sản phẩm";
+
   button.disabled = true;
   button.textContent = "Đang lưu...";
 
   try {
-    await callApi("/api/watchlist?platform=auto&product_name=auto", {
+    await callApi(`/api/watchlist?platform=auto&product_name=${encodeURIComponent(productName)}`, {
         method: "POST",
         body: JSON.stringify({
           url: infoButton.dataset.historyUrl,
