@@ -524,9 +524,21 @@ const authToggleBtn = document.getElementById("auth-toggle-btn");
 const authError = document.getElementById("auth-error");
 
 let isLoginMode = true;
+let captchaResult = 0;
+
+function generateCaptcha() {
+  const num1 = Math.floor(Math.random() * 10);
+  const num2 = Math.floor(Math.random() * 10);
+  captchaResult = num1 + num2;
+  const captchaQuestion = document.getElementById("captcha-question");
+  if (captchaQuestion) captchaQuestion.textContent = `${num1} + ${num2} =`;
+  const captchaAnswer = document.getElementById("auth-captcha-answer");
+  if (captchaAnswer) captchaAnswer.value = "";
+}
 
 function showAuthModal() {
   if (authModalOverlay) authModalOverlay.classList.remove("hidden");
+  generateCaptcha();
 }
 
 function hideAuthModal() {
@@ -556,6 +568,14 @@ if (authForm) {
   authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     
+    const captchaAnswer = document.getElementById("auth-captcha-answer");
+    if (captchaAnswer && parseInt(captchaAnswer.value, 10) !== captchaResult) {
+      authError.textContent = "Kết quả phép toán không đúng!";
+      authError.style.display = "block";
+      generateCaptcha();
+      return;
+    }
+
     if (!isLoginMode) {
       const confirmPassword = document.getElementById("auth-confirm-password");
       if (confirmPassword && authPassword.value !== confirmPassword.value) {
@@ -586,8 +606,9 @@ if (authForm) {
       // Auto reload resources
       loadWatchlist();
     } catch (err) {
-      authError.textContent = err.message;
+      authError.textContent = err.message === "Failed to fetch" ? "Lỗi kết nối máy chủ, vui lòng thử lại." : err.message;
       authError.style.display = "block";
+      generateCaptcha();
     }
     authSubmit.disabled = false;
   });

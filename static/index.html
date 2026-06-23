@@ -176,6 +176,10 @@
           <i class="ph ph-lock-key input-icon" style="top: 50%; transform: translateY(-50%); left: 12px;"></i>
           <input type="password" id="auth-confirm-password" placeholder="Nhập lại mật khẩu" style="width: 100%; padding: 10px 10px 10px 36px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);" />
         </div>
+        <div class="input-group" style="margin-bottom: 1rem; display: flex; gap: 8px;">
+          <div id="captcha-question" style="background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; width: 80px; text-align: center; font-weight: bold; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-main);"></div>
+          <input type="number" id="auth-captcha-answer" placeholder="Kết quả phép tính" required style="width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);" />
+        </div>
         <div id="auth-error" style="color: var(--primary); font-size: 0.875rem; margin-bottom: 1rem; display: none;"></div>
         <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;" id="auth-submit">Đăng nhập</button>
       </form>
