@@ -43,7 +43,7 @@ Hãy phân tích ngắn gọn và đưa ra lời khuyên.
 """
 
     try:
-        model = genai.GenerativeModel("gemini-3.5-flash")
+        model = genai.GenerativeModel("gemini-3.5-flash-8b")
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
@@ -54,7 +54,7 @@ async def chat_with_ai(product_name: str, history_data: list, message: str, chat
         return "Lỗi: Chưa cấu hình GEMINI_API_KEY trong file .env"
 
     try:
-        model = genai.GenerativeModel("gemini-3.5-flash")
+        model = genai.GenerativeModel("gemini-3.5-flash-8b")
         
         if history_data:
             latest = history_data[-1]
