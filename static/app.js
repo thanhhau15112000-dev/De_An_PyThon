@@ -118,10 +118,10 @@ function renderResults(items) {
           </div>
         </td>
         <td>
-          <button class="btn btn-text" style="color: var(--primary);"
+          <button class="btn btn-text" style="color: var(--primary); white-space: nowrap;"
             data-ai-url="${escapeHtml(item.url)}"
             data-ai-product="${escapeHtml(item.product_name || "Sản phẩm")}">
-            <i class="ph-fill ph-robot"></i> Xem phân tích
+            <i class="ph-fill ph-robot"></i> AI phân tích
           </button>
         </td>
         <td class="text-right">
@@ -154,12 +154,13 @@ let chatHistory = [];
 
 function toggleAiSidebar() {
   aiSidebar.classList.toggle("hidden");
-  aiSidebarOverlay.classList.toggle("hidden");
+  // Bỏ overlay để có thể thao tác song song trang chính
+  // aiSidebarOverlay.classList.toggle("hidden");
 }
 
 aiFab.addEventListener("click", toggleAiSidebar);
 aiSidebarClose.addEventListener("click", toggleAiSidebar);
-aiSidebarOverlay.addEventListener("click", toggleAiSidebar);
+// aiSidebarOverlay.addEventListener("click", toggleAiSidebar);
 
 function renderChatMessages() {
   if (chatHistory.length === 0) {
