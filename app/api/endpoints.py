@@ -1,12 +1,13 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.encoders import jsonable_encoder
 from starlette.concurrency import run_in_threadpool
 
 from app.models.schemas import ScanRequest, TargetRequest, ChatRequest
 from app.services.scraper import STORE_CONFIG, scrape_product, scrape_products
-from app.services.analysis import analyze_price, save_price, get_history, get_latest_prices, get_targets, save_target, get_target_by_url, update_target_after_scan, now
+from app.services.analysis import analyze_price, save_price, get_history, get_latest_prices, get_targets, save_target, get_targets_by_url, update_target_after_scan, now
 from app.services.ai_insight import generate_insight, chat_with_ai
 from app.services.mailer import send_price_alert_sync
+from app.core.security import get_current_user
 
 router = APIRouter()
 
@@ -44,17 +45,17 @@ async def process_result(result: dict):
     result["buy_signal"] = analysis["buy_signal"]
     result["note"] = analysis["note"]
 
-    target = await get_target_by_url(result["url"])
-    if target:
-        result["target_price"] = target.get("target_price")
-        if result["price_value"] <= result["target_price"]:
+    targets = await get_targets_by_url(result["url"])
+    for target in targets:
+        t_price = target.get("target_price")
+        if result["price_value"] <= t_price:
             result["alert_hit"] = True
             sent, error = await run_in_threadpool(
                 send_price_alert_sync,
                 target.get("email", ""),
                 result["product_name"],
                 result["price"],
-                result["target_price"],
+                t_price,
                 result["url"],
             )
             result["alert_status"] = "sent" if sent else "failed"
@@ -116,13 +117,13 @@ async def history(url: str, limit: int = 30):
     return jsonable_encoder({"url": url, "history": data, "count": len(data)})
 
 @router.get("/ai-insight")
-async def ai_insight(url: str, product_name: str = "Sản phẩm"):
+async def ai_insight(url: str, product_name: str = "Sản phẩm", current_user: str = Depends(get_current_user)):
     data = await get_history(url, limit=30)
     insight = await generate_insight(product_name, data)
     return jsonable_encoder({"url": url, "insight": insight})
 
 @router.post("/chat")
-async def chat_api(data: ChatRequest):
+async def chat_api(data: ChatRequest, current_user: str = Depends(get_current_user)):
     history_data = await get_history(data.url, limit=30)
     reply = await chat_with_ai(data.product_name, history_data, data.message, data.history)
     return jsonable_encoder({"reply": reply})
@@ -142,11 +143,11 @@ async def watchlist(limit: int = 30):
     return jsonable_encoder({"items": data, "count": len(data)})
 
 @router.post("/watchlist")
-async def create_watch(data: TargetRequest, platform: str = "unknown", product_name: str = ""):
+async def create_watch(data: TargetRequest, platform: str = "unknown", product_name: str = "", current_user: str = Depends(get_current_user)):
     saved, error = await save_target(
         data.url,
         data.target_price,
-        data.email,
+        current_user,
         platform,
         product_name,
     )
@@ -155,5 +156,5 @@ async def create_watch(data: TargetRequest, platform: str = "unknown", product_n
         "error": error,
         "url": data.url,
         "target_price": data.target_price,
-        "email": data.email,
+        "email": current_user,
     }

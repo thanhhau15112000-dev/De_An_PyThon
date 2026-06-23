@@ -56,10 +56,20 @@ const API_BASE_URL = window.location.hostname === "localhost" || window.location
 
 async function callApi(endpoint, options = {}) {
   const path = endpoint.startsWith("/") ? endpoint : "/" + endpoint;
+  const token = localStorage.getItem("token");
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (token) headers["Authorization"] = "Bearer " + token;
+
   const response = await fetch(API_BASE_URL + path, {
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers: headers,
   });
+  
+  if (response.status === 401) {
+    showAuthModal();
+    throw new Error("Unauthorized");
+  }
+  
   return await response.json();
 }
 
@@ -112,7 +122,6 @@ function renderResults(items) {
             </div>
             <div class="target-inputs hidden" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
               <input type="number" class="target-input" placeholder="Giá mục tiêu" data-target-price />
-              <input type="email" class="target-input" placeholder="Email nhận cảnh báo" data-target-email />
               <button class="btn btn-text" style="padding: 6px 0; justify-content: flex-start; color: var(--primary);" data-save-target>Lưu</button>
             </div>
           </div>
@@ -399,7 +408,7 @@ async function saveTarget(button) {
         body: JSON.stringify({
           url: infoButton.dataset.historyUrl,
           target_price: Number(priceInput.value),
-          email: emailInput.value,
+          email: ""
         }),
       });
     await loadWatchlist();
@@ -490,5 +499,92 @@ resultsBody.addEventListener("click", async function (event) {
   }
 });
 
+// Auth Logic
+const authStatus = document.getElementById("auth-status");
+const authModalOverlay = document.getElementById("auth-modal-overlay");
+const authClose = document.getElementById("auth-close");
+const authForm = document.getElementById("auth-form");
+const authEmail = document.getElementById("auth-email");
+const authPassword = document.getElementById("auth-password");
+const authTitle = document.getElementById("auth-title");
+const authSubmit = document.getElementById("auth-submit");
+const authToggleText = document.getElementById("auth-toggle-text");
+const authToggleBtn = document.getElementById("auth-toggle-btn");
+const authError = document.getElementById("auth-error");
+
+let isLoginMode = true;
+
+function showAuthModal() {
+  if (authModalOverlay) authModalOverlay.classList.remove("hidden");
+}
+
+function hideAuthModal() {
+  if (authModalOverlay) authModalOverlay.classList.add("hidden");
+  if (authError) authError.style.display = "none";
+}
+
+if (authClose) authClose.addEventListener("click", hideAuthModal);
+
+if (authToggleBtn) {
+  authToggleBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    isLoginMode = !isLoginMode;
+    authTitle.textContent = isLoginMode ? "Đăng nhập" : "Đăng ký";
+    authSubmit.textContent = isLoginMode ? "Đăng nhập" : "Đăng ký";
+    authToggleText.textContent = isLoginMode ? "Chưa có tài khoản?" : "Đã có tài khoản?";
+    authToggleBtn.textContent = isLoginMode ? "Đăng ký ngay" : "Đăng nhập";
+    authError.style.display = "none";
+  });
+}
+
+if (authForm) {
+  authForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const endpoint = isLoginMode ? "/api/auth/login" : "/api/auth/register";
+    authSubmit.disabled = true;
+    authError.style.display = "none";
+    try {
+      const res = await fetch(API_BASE_URL + endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: authEmail.value, password: authPassword.value })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || "Đăng nhập thất bại");
+      }
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("user_email", authEmail.value);
+      hideAuthModal();
+      checkAuthStatus();
+      
+      // Auto reload resources
+      loadWatchlist();
+    } catch (err) {
+      authError.textContent = err.message;
+      authError.style.display = "block";
+    }
+    authSubmit.disabled = false;
+  });
+}
+
+function checkAuthStatus() {
+  const email = localStorage.getItem("user_email");
+  if (email && authStatus) {
+    authStatus.innerHTML = `<span style="font-size: 0.9rem; font-weight: 500; color: var(--text);"><i class="ph ph-user"></i> ${email}</span>
+                            <button id="btn-logout" class="btn btn-text" style="color: var(--primary); padding: 4px;" title="Đăng xuất"><i class="ph ph-sign-out" style="font-size: 1.25rem;"></i></button>`;
+    document.getElementById("btn-logout").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_email");
+      checkAuthStatus();
+      loadWatchlist();
+    });
+  } else if (authStatus) {
+    authStatus.innerHTML = `<button id="btn-show-login" class="btn btn-text"><i class="ph ph-user"></i> Đăng nhập</button>`;
+    document.getElementById("btn-show-login").addEventListener("click", showAuthModal);
+  }
+}
+
+checkAuthStatus();
 renderResults([]);
 loadWatchlist();

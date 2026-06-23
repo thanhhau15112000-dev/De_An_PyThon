@@ -101,7 +101,7 @@ async def analyze_price(url: str, current_price: int):
 async def save_target(url: str, target_price: int, email: str = "", platform: str = "", product_name: str = ""):
     try:
         await db_ctx.db["watchlist"].update_one(
-            {"url": url},
+            {"url": url, "email": email},
             {
                 "$set": {
                     "url": url,
@@ -126,16 +126,17 @@ async def get_targets(limit: int = 30):
     except Exception:
         return []
 
-async def get_target_by_url(url: str):
+async def get_targets_by_url(url: str):
     try:
-        item = await db_ctx.db["watchlist"].find_one({"url": url})
-        return remove_id(item)
+        cursor = db_ctx.db["watchlist"].find({"url": url})
+        data = await cursor.to_list(length=100)
+        return [remove_id(item) for item in data]
     except Exception:
-        return None
+        return []
 
 async def update_target_after_scan(result: dict):
     try:
-        await db_ctx.db["watchlist"].update_one(
+        await db_ctx.db["watchlist"].update_many(
             {"url": result["url"]},
             {
                 "$set": {
