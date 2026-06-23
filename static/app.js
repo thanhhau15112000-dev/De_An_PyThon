@@ -611,6 +611,22 @@ if (captchaRefresh) {
   captchaRefresh.addEventListener("click", generateCaptcha);
 }
 
+const togglePasswords = document.querySelectorAll(".toggle-password");
+togglePasswords.forEach(icon => {
+  icon.addEventListener("click", function() {
+    const input = this.previousElementSibling;
+    if (input.type === "password") {
+      input.type = "text";
+      this.classList.remove("ph-eye-slash");
+      this.classList.add("ph-eye");
+    } else {
+      input.type = "password";
+      this.classList.remove("ph-eye");
+      this.classList.add("ph-eye-slash");
+    }
+  });
+});
+
 if (authForm) {
   authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
