@@ -212,13 +212,16 @@ async function loadHistory(url, productName) {
   const labels = history.map(item => {
     const d = new Date(item.scraped_at);
     return d.getDate() + '/' + (d.getMonth()+1) + ' ' + d.getHours() + ":" + String(d.getMinutes()).padStart(2, '0');
-  }).reverse();
+  });
 
-  const chartData = history.map(item => item.price_value).reverse();
+  const chartData = history.map(item => item.price_value);
 
   const gradient = ctx.createLinearGradient(0, 0, 0, 250);
   gradient.addColorStop(0, 'rgba(225, 29, 72, 0.2)'); // --primary
   gradient.addColorStop(1, 'rgba(225, 29, 72, 0)');
+
+  const pointBackgrounds = chartData.map((_, i) => i === chartData.length - 1 ? '#E11D48' : '#FFFFFF');
+  const pointRadii = chartData.map((_, i) => i === chartData.length - 1 ? 6 : 4);
 
   myChart = new Chart(ctx, {
     type: 'line',
@@ -229,10 +232,10 @@ async function loadHistory(url, productName) {
         borderColor: '#E11D48',
         backgroundColor: gradient,
         borderWidth: 2,
-        pointBackgroundColor: '#FFFFFF',
+        pointBackgroundColor: pointBackgrounds,
         pointBorderColor: '#E11D48',
         pointBorderWidth: 2,
-        pointRadius: 4,
+        pointRadius: pointRadii,
         fill: true,
         tension: 0.3
       }]

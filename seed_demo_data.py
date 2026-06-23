@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from random import Random
 import pymongo
 
-URLS = [
+HARDCODED_URLS = [
     "https://hoanghamobile.com/dien-thoai/dien-thoai-xiaomi-poco-m7-6gb-128gb",
     "https://hoanghamobile.com/dong-ho-thong-minh/vong-deo-tay-thong-minh-xiaomi-band-10-khung-ceramic",
     "https://cellphones.com.vn/laptop-msi-prestige-13-ai-ukiyoe-edition-a2vmg-075vn.html",
@@ -31,21 +31,6 @@ FALLBACK_PRODUCTS = {
     "macbook-neo-13-a18-pro-6-cpu-5-gpu-8gb-512gb": ("MacBook Neo 13 inch A18 Pro 2026 8GB 512GB", "cellphones", 18990000),
     "apple-macbook-air-13-m4-10cpu-10gpu-24gb-512gb-2025-sac-70w": ("MacBook Air M4 13 inch 2025 24GB 512GB", "cellphones", 34590000),
 }
-
-
-def unique_urls(urls):
-    result = []
-    for url in urls:
-        if url not in result:
-            result.append(url)
-    return result
-
-
-def fallback_for_url(url):
-    for key, value in FALLBACK_PRODUCTS.items():
-        if key in url:
-            return value
-    return "San pham demo", "unknown", 10000000
 
 
 def round_price(value):
@@ -87,31 +72,66 @@ def make_fake_history(url, product_name, platform, base_price):
     return rows
 
 
-def get_product_info(url):
-    # Only use fallback for demo seed to avoid breaking scraper
-    product_name, platform, price = fallback_for_url(url)
-    return product_name, platform, price
+def get_fallback_info(url):
+    for key, value in FALLBACK_PRODUCTS.items():
+        if key in url:
+            return value
+    return "San pham demo", "unknown", 10000000
 
+
+import os
+from dotenv import load_dotenv
 
 def main():
-    client = pymongo.MongoClient("mongodb://localhost:27017")
+    load_dotenv()
+    mongo_url = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+    client = pymongo.MongoClient(mongo_url)
     db = client["price_tracker_db"]
     price_history = db["price_history"]
 
-    urls = unique_urls(URLS)
+    # 1. Fetch real products that have been scanned by the user
+    pipeline = [
+        {"$match": {"demo_seed": {"$ne": True}}},
+        {"$sort": {"scraped_at": -1}},
+        {"$group": {
+            "_id": "$url",
+            "product_name": {"$first": "$product_name"},
+            "platform": {"$first": "$platform"},
+            "price_value": {"$first": "$price_value"}
+        }}
+    ]
+    real_products = list(price_history.aggregate(pipeline))
+    
+    # 2. Build a combined map of URL -> (product_name, platform, base_price)
+    products_to_seed = {}
+    
+    for rp in real_products:
+        if rp["_id"] and rp.get("price_value"):
+            products_to_seed[rp["_id"]] = (rp["product_name"], rp["platform"], rp["price_value"])
+            
+    # 3. Add hardcoded URLs if they aren't already in the database
+    for url in HARDCODED_URLS:
+        if url not in products_to_seed:
+            products_to_seed[url] = get_fallback_info(url)
+
     all_rows = []
 
-    for url in urls:
-        product_name, platform, base_price = get_product_info(url)
+    for url, info in products_to_seed.items():
+        product_name, platform, base_price = info
         rows = make_fake_history(url, product_name, platform, base_price)
         all_rows.extend(rows)
         print(url)
-        print("  product:", product_name.encode("ascii", "ignore").decode())
+        print("  product:", str(product_name).encode("ascii", "ignore").decode())
         print("  base price:", format_price(base_price))
         print("  rows:", len(rows))
 
-    price_history.delete_many({"url": {"$in": urls}, "demo_seed": True})
-    price_history.insert_many(all_rows)
+    # Delete old demo seed data
+    urls_to_delete = list(products_to_seed.keys())
+    price_history.delete_many({"url": {"$in": urls_to_delete}, "demo_seed": True})
+    
+    # Insert new demo data
+    if all_rows:
+        price_history.insert_many(all_rows)
 
     print("Inserted demo rows:", len(all_rows))
 
