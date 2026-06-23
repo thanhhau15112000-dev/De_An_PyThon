@@ -154,8 +154,7 @@ let chatHistory = [];
 
 function toggleAiSidebar() {
   aiSidebar.classList.toggle("hidden");
-  // Bỏ overlay để có thể thao tác song song trang chính
-  // aiSidebarOverlay.classList.toggle("hidden");
+  document.body.classList.toggle("sidebar-open");
 }
 
 aiFab.addEventListener("click", toggleAiSidebar);
@@ -440,7 +439,9 @@ resultsBody.addEventListener("click", async function (event) {
     const url = button.getAttribute("data-ai-url");
     const productName = button.getAttribute("data-ai-product");
     
-    toggleAiSidebar();
+    if (aiSidebar.classList.contains("hidden")) {
+      toggleAiSidebar();
+    }
     
     if (url !== currentChatUrl) {
       currentChatUrl = url;

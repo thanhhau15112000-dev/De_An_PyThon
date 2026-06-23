@@ -32,6 +32,11 @@ body {
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
+  transition: padding-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.sidebar-open {
+  padding-right: 450px;
 }
 
 /* Typography */
@@ -587,6 +592,9 @@ tr:last-child td {
   border-radius: 12px;
   font-size: 0.95rem;
   line-height: 1.5;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .chat-message.ai .chat-bubble {
