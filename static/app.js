@@ -126,7 +126,7 @@ function renderResults(items) {
             </div>
           </div>
         </td>
-        <td>
+        <td style="text-align: center;">
           <button class="btn btn-text" style="color: var(--primary); white-space: nowrap;"
             data-ai-url="${escapeHtml(item.url)}"
             data-ai-product="${escapeHtml(item.product_name || "Sản phẩm")}">
