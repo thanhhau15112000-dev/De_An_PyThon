@@ -43,7 +43,7 @@ Hãy phân tích ngắn gọn và đưa ra lời khuyên.
 """
 
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash-latest")
+        model = genai.GenerativeModel("gemini-3.5-flash")
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
