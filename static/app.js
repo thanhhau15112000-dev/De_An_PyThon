@@ -1,6 +1,15 @@
 const sampleUrls = [
-  "https://cellphones.com.vn/iphone-15.html",
-  "https://www.thegioididong.com/dtdd/iphone-15",
+  "https://hoanghamobile.com/dien-thoai/dien-thoai-xiaomi-poco-m7-6gb-128gb",
+  "https://hoanghamobile.com/dong-ho-thong-minh/vong-deo-tay-thong-minh-xiaomi-band-10-khung-ceramic",
+  "https://cellphones.com.vn/laptop-msi-prestige-13-ai-ukiyoe-edition-a2vmg-075vn.html",
+  "https://cellphones.com.vn/laptop-lenovo-legion-5-15irx10-83ly00hqvn.html",
+  "https://hoanghamobile.com/dien-thoai/oppo-a3-8gb-256gb",
+  "https://cellphones.com.vn/macbook-air-15-m5-10-cpu-10-gpu-24gb-1tb.html",
+  "https://cellphones.com.vn/macbook-pro-14-inch-m5-24gb-1tb.html",
+  "https://hoanghamobile.com/dien-thoai-di-dong/nubia-neo-8gb-256gb-chinh-hang",
+  "https://cellphones.com.vn/macbook-neo-13-a18-pro-6-cpu-5-gpu-8gb-256gb.html",
+  "https://cellphones.com.vn/macbook-neo-13-a18-pro-6-cpu-5-gpu-8gb-512gb.html",
+  "https://cellphones.com.vn/apple-macbook-air-13-m4-10cpu-10gpu-24gb-512gb-2025-sac-70w.html",
 ];
 
 const form = document.getElementById("scan-form");
@@ -97,10 +106,15 @@ function renderResults(items) {
         </td>
         <td>
           <div class="target-form">
-            <span class="badge ${item.alert_hit ? "good" : "unknown"}">${item.target_price ? "Target: " + formatMoney(item.target_price) : "Chưa có target"}</span>
-            <input type="number" class="target-input" placeholder="Giá mục tiêu" data-target-price />
-            <input type="email" class="target-input" placeholder="Email nhận cảnh báo" data-target-email />
-            <button class="btn btn-text" style="padding: 6px 0; justify-content: flex-start;" data-save-target>Lưu Target</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge ${item.alert_hit ? "good" : "unknown"}">${item.target_price ? "Target: " + formatMoney(item.target_price) : "Chưa có target"}</span>
+              <button class="btn btn-text" style="padding: 4px; color: var(--primary);" data-toggle-target title="Cài đặt cảnh báo"><i class="ph ph-pencil-simple"></i></button>
+            </div>
+            <div class="target-inputs hidden" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+              <input type="number" class="target-input" placeholder="Giá mục tiêu" data-target-price />
+              <input type="email" class="target-input" placeholder="Email nhận cảnh báo" data-target-email />
+              <button class="btn btn-text" style="padding: 6px 0; justify-content: flex-start; color: var(--primary);" data-save-target>Lưu</button>
+            </div>
           </div>
         </td>
         <td class="text-right">
@@ -119,9 +133,6 @@ function renderResults(items) {
 async function loadOverview() {
   const data = await callApi("/api/overview?limit=20");
   renderResults(data.items || []);
-  summaryTotal.textContent = data.count || 0;
-  summarySuccess.textContent = data.count || 0;
-  summaryFailed.textContent = 0;
 }
 
 async function loadWatchlist() {
@@ -310,6 +321,11 @@ resultsBody.addEventListener("click", async function (event) {
   if (button.dataset.historyUrl) {
     chartShell.parentElement.scrollIntoView({ behavior: "smooth", block: "start" });
     await loadHistory(button.dataset.historyUrl, button.dataset.productName);
+  }
+
+  if (button.hasAttribute("data-toggle-target")) {
+    const inputsDiv = button.closest(".target-form").querySelector(".target-inputs");
+    inputsDiv.classList.toggle("hidden");
   }
 
   if (button.hasAttribute("data-save-target")) {

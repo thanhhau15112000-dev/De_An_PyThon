@@ -1,9 +1,6 @@
 from datetime import datetime, timedelta
 from random import Random
-
-from database import price_history
-from scraper import scrape_product
-
+import pymongo
 
 URLS = [
     "https://hoanghamobile.com/dien-thoai/dien-thoai-xiaomi-poco-m7-6gb-128gb",
@@ -13,11 +10,13 @@ URLS = [
     "https://hoanghamobile.com/dien-thoai/oppo-a3-8gb-256gb",
     "https://cellphones.com.vn/macbook-air-15-m5-10-cpu-10-gpu-24gb-1tb.html",
     "https://cellphones.com.vn/macbook-pro-14-inch-m5-24gb-1tb.html",
-    "https://cellphones.com.vn/macbook-pro-14-inch-m5-24gb-1tb.html",
     "https://hoanghamobile.com/dien-thoai-di-dong/nubia-neo-8gb-256gb-chinh-hang",
+    "https://cellphones.com.vn/macbook-neo-13-a18-pro-6-cpu-5-gpu-8gb-256gb.html",
+    "https://cellphones.com.vn/macbook-neo-13-a18-pro-6-cpu-5-gpu-8gb-512gb.html",
+    "https://cellphones.com.vn/apple-macbook-air-13-m4-10cpu-10gpu-24gb-512gb-2025-sac-70w.html",
 ]
 
-HISTORY_COUNT = 5
+HISTORY_COUNT = 30
 
 FALLBACK_PRODUCTS = {
     "poco-m7": ("Xiaomi POCO M7 6GB 128GB", "hoanghamobile", 3990000),
@@ -28,6 +27,9 @@ FALLBACK_PRODUCTS = {
     "macbook-air-15-m5": ("MacBook Air 15 M5 24GB 1TB", "cellphones", 45990000),
     "macbook-pro-14-inch-m5": ("MacBook Pro 14 M5 24GB 1TB", "cellphones", 59990000),
     "nubia-neo": ("Nubia Neo 8GB 256GB", "hoanghamobile", 4490000),
+    "macbook-neo-13-a18-pro-6-cpu-5-gpu-8gb-256gb": ("MacBook Neo 13 inch A18 Pro 2026 8GB 256GB", "cellphones", 15990000),
+    "macbook-neo-13-a18-pro-6-cpu-5-gpu-8gb-512gb": ("MacBook Neo 13 inch A18 Pro 2026 8GB 512GB", "cellphones", 18990000),
+    "apple-macbook-air-13-m4-10cpu-10gpu-24gb-512gb-2025-sac-70w": ("MacBook Air M4 13 inch 2025 24GB 512GB", "cellphones", 34590000),
 }
 
 
@@ -63,7 +65,7 @@ def make_fake_history(url, product_name, platform, base_price):
         date = today - timedelta(days=days_ago)
         old_price_bonus = days_ago / HISTORY_COUNT * 0.05
         random_change = random.uniform(-0.04, 0.04)
-        sale_change = -0.08 if days_ago == 2 else 0
+        sale_change = -0.08 if days_ago in [2, 10, 20] else 0
         price_value = round_price(base_price * (1 + old_price_bonus + random_change + sale_change))
 
         rows.append(
@@ -74,8 +76,8 @@ def make_fake_history(url, product_name, platform, base_price):
                 "price": format_price(price_value),
                 "price_value": price_value,
                 "currency": "VND",
-                "availability": "unknown",
-                "buy_signal": "watch",
+                "availability": "InStock",
+                "buy_signal": "good" if sale_change < 0 else "watch",
                 "note": "Du lieu demo lich su gia.",
                 "scraped_at": date,
                 "demo_seed": True,
@@ -86,15 +88,16 @@ def make_fake_history(url, product_name, platform, base_price):
 
 
 def get_product_info(url):
-    result = scrape_product(url, timeout=12)
-    if result["success"]:
-        return result["product_name"], result["platform"], result["price_value"]
-
+    # Only use fallback for demo seed to avoid breaking scraper
     product_name, platform, price = fallback_for_url(url)
     return product_name, platform, price
 
 
 def main():
+    client = pymongo.MongoClient("mongodb://localhost:27017")
+    db = client["price_tracker_db"]
+    price_history = db["price_history"]
+
     urls = unique_urls(URLS)
     all_rows = []
 
