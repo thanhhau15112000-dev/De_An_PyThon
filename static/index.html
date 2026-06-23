@@ -23,20 +23,8 @@
         </div>
       </div>
       <div class="header-right">
-        <div id="auth-status" class="auth-status" style="margin-right: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <div id="auth-status" class="auth-status" style="display: flex; align-items: center; gap: 0.5rem;">
           <button id="btn-show-login" class="btn btn-primary" style="border-radius: 8px; padding: 6px 12px;"><i class="ph ph-user"></i> Đăng nhập</button>
-        </div>
-        <div class="stat-pill">
-          <span class="stat-label">Tổng</span>
-          <strong id="summary-total">0</strong>
-        </div>
-        <div class="stat-pill success">
-          <span class="stat-label">Thành công</span>
-          <strong id="summary-success">0</strong>
-        </div>
-        <div class="stat-pill error">
-          <span class="stat-label">Thất bại</span>
-          <strong id="summary-failed">0</strong>
         </div>
       </div>
     </header>
@@ -57,6 +45,20 @@
             <div class="action-row">
               <button id="scan-button" type="submit" class="btn btn-primary">Bắt đầu quét</button>
               <button id="sample-button" class="btn btn-text" type="button">URL mẫu</button>
+            </div>
+            <div class="scan-stats" style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+              <div class="stat-pill">
+                <span class="stat-label">Tổng</span>
+                <strong id="summary-total">0</strong>
+              </div>
+              <div class="stat-pill success">
+                <span class="stat-label">Thành công</span>
+                <strong id="summary-success">0</strong>
+              </div>
+              <div class="stat-pill error">
+                <span class="stat-label">Thất bại</span>
+                <strong id="summary-failed">0</strong>
+              </div>
             </div>
           </form>
         </section>
