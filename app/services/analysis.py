@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from app.database.connection import db_ctx
 
 def now():
-    return datetime.now()
+    return datetime.now(timezone.utc)
 
 def remove_id(document):
     if document is None:
