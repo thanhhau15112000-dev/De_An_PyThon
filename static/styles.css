@@ -459,6 +459,10 @@ tr:last-child td {
   }
 }
 
+.flash-green { animation: flash-green 1.5s ease-out; }
+.flash-red { animation: flash-red 1.5s ease-out; }
+.flash-yellow { animation: flash-yellow 1.5s ease-out; }
+
 /* AI FAB */
 .ai-fab {
   position: fixed;

@@ -46,7 +46,7 @@ function escapeHtml(value) {
 function getUrls() {
   return urlInput.value
     .split("\n")
-    .map((url) => url.trim())
+    .map((url) => url.replace(/^❌\s*/, "").replace(/^✅\s*/, "").trim())
     .filter((url) => url !== "");
 }
 
@@ -111,8 +111,8 @@ function renderResults(items) {
         </td>
         <td>
           <span class="badge ${item.buy_signal || "unknown"}">${getSignalText(item.buy_signal)}</span>
-          <div class="status-row" style="margin-top: 8px;">Thấp: ${formatMoney(analysis.low_price)}</div>
-          <div class="status-row">TB: ${formatMoney(analysis.average_price)}</div>
+          <div class="status-row" style="margin-top: 8px; white-space: nowrap;">Thấp: <strong>${formatMoney(analysis.low_price)}</strong></div>
+          <div class="status-row" style="white-space: nowrap;">TB: <strong>${formatMoney(analysis.average_price)}</strong></div>
         </td>
         <td>
           <div class="target-form">
@@ -286,6 +286,48 @@ async function runScan() {
     summaryTotal.textContent = data.summary.total;
     summarySuccess.textContent = data.summary.success;
     summaryFailed.textContent = data.summary.failed;
+
+    // Background Flash
+    document.body.classList.remove('flash-green', 'flash-red', 'flash-yellow');
+    void document.body.offsetWidth; // trigger reflow
+    const total = data.summary.total;
+    const success = data.summary.success;
+    const failed = data.summary.failed;
+    
+    if (total > 0) {
+      if (success === total) {
+        document.body.classList.add('flash-green');
+      } else if (failed === total) {
+        document.body.classList.add('flash-red');
+      } else {
+        document.body.classList.add('flash-yellow');
+      }
+    }
+
+    // Đánh dấu URL bị lỗi
+    const currentLines = urlInput.value.split("\n");
+    const newLines = [];
+    for (let line of currentLines) {
+      let trimmed = line.trim();
+      if (!trimmed) {
+        newLines.push(line);
+        continue;
+      }
+      let cleanUrl = trimmed.replace(/^❌\s*/, "").replace(/^✅\s*/, "");
+      let matchedResult = data.results.find(r => r.url === cleanUrl);
+      
+      if (matchedResult) {
+        if (matchedResult.success === false || matchedResult.error) {
+          newLines.push(`❌ ${cleanUrl}`);
+        } else {
+          newLines.push(cleanUrl); // Bỏ dấu lỗi nếu đã thành công
+        }
+      } else {
+        newLines.push(trimmed);
+      }
+    }
+    urlInput.value = newLines.join("\n");
+
     await loadWatchlist();
   } catch (error) {
     alert("Lỗi khi quét dữ liệu.");
