@@ -14,6 +14,16 @@ def remove_id(document):
 
 async def save_price(product: dict):
     try:
+        latest = await db_ctx.db["price_history"].find_one(
+            {"url": product["url"]},
+            sort=[("scraped_at", -1)]
+        )
+        if latest and latest.get("price_value") == product["price_value"]:
+            latest_time = latest.get("scraped_at")
+            current_time = product.get("scraped_at")
+            if latest_time and current_time and latest_time.date() == current_time.date():
+                return True, "skipped_duplicate_today"
+
         await db_ctx.db["price_history"].insert_one(product)
         return True, ""
     except Exception as error:
