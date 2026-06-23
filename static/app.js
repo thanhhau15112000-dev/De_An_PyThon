@@ -544,6 +544,10 @@ if (authToggleBtn) {
     authSubmit.textContent = isLoginMode ? "Đăng nhập" : "Đăng ký";
     authToggleText.textContent = isLoginMode ? "Chưa có tài khoản?" : "Đã có tài khoản?";
     authToggleBtn.textContent = isLoginMode ? "Đăng ký ngay" : "Đăng nhập";
+    const authConfirmGroup = document.getElementById("auth-confirm-group");
+    const authConfirmPassword = document.getElementById("auth-confirm-password");
+    if (authConfirmGroup) authConfirmGroup.style.display = isLoginMode ? "none" : "block";
+    if (authConfirmPassword) authConfirmPassword.required = !isLoginMode;
     authError.style.display = "none";
   });
 }
@@ -551,6 +555,16 @@ if (authToggleBtn) {
 if (authForm) {
   authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    
+    if (!isLoginMode) {
+      const confirmPassword = document.getElementById("auth-confirm-password");
+      if (confirmPassword && authPassword.value !== confirmPassword.value) {
+        authError.textContent = "Mật khẩu nhập lại không khớp!";
+        authError.style.display = "block";
+        return;
+      }
+    }
+
     const endpoint = isLoginMode ? "/api/auth/login" : "/api/auth/register";
     authSubmit.disabled = true;
     authError.style.display = "none";
