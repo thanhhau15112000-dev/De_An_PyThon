@@ -24,7 +24,7 @@
       </div>
       <div class="header-right">
         <div id="auth-status" class="auth-status" style="margin-right: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-          <button id="btn-show-login" class="btn btn-text"><i class="ph ph-user"></i> Đăng nhập</button>
+          <button id="btn-show-login" class="btn btn-primary" style="border-radius: 8px; padding: 6px 12px;"><i class="ph ph-user"></i> Đăng nhập</button>
         </div>
         <div class="stat-pill">
           <span class="stat-label">Tổng</span>
@@ -163,12 +163,12 @@
       </div>
       <form id="auth-form" class="clean-form">
         <div class="input-group" style="margin-bottom: 1rem;">
-          <i class="ph ph-envelope input-icon"></i>
-          <input type="email" id="auth-email" placeholder="Email" required style="width: 100%; padding: 10px 10px 10px 35px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);" />
+          <i class="ph ph-envelope input-icon" style="top: 50%; transform: translateY(-50%); left: 12px;"></i>
+          <input type="email" id="auth-email" placeholder="Email" required style="width: 100%; padding: 10px 10px 10px 36px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);" />
         </div>
         <div class="input-group" style="margin-bottom: 1rem;">
-          <i class="ph ph-lock input-icon"></i>
-          <input type="password" id="auth-password" placeholder="Mật khẩu" required style="width: 100%; padding: 10px 10px 10px 35px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);" />
+          <i class="ph ph-lock input-icon" style="top: 50%; transform: translateY(-50%); left: 12px;"></i>
+          <input type="password" id="auth-password" placeholder="Mật khẩu" required style="width: 100%; padding: 10px 10px 10px 36px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);" />
         </div>
         <div id="auth-error" style="color: var(--primary); font-size: 0.875rem; margin-bottom: 1rem; display: none;"></div>
         <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;" id="auth-submit">Đăng nhập</button>

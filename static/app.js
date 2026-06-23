@@ -121,7 +121,7 @@ function renderResults(items) {
               <button class="btn btn-text" style="padding: 4px; color: var(--primary);" data-toggle-target title="Cài đặt cảnh báo"><i class="ph ph-pencil-simple"></i></button>
             </div>
             <div class="target-inputs hidden" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
-              <input type="number" class="target-input" placeholder="Giá mục tiêu" data-target-price />
+              <input type="text" class="target-input" placeholder="Giá mục tiêu (VD: 1,500,000)" data-target-price />
               <button class="btn btn-text" style="padding: 6px 0; justify-content: flex-start; color: var(--primary);" data-save-target>Lưu</button>
             </div>
           </div>
@@ -407,7 +407,7 @@ async function saveTarget(button) {
         method: "POST",
         body: JSON.stringify({
           url: infoButton.dataset.historyUrl,
-          target_price: Number(priceInput.value),
+          target_price: Number(priceInput.value.replace(/\D/g, "")),
           email: ""
         }),
       });
@@ -415,7 +415,7 @@ async function saveTarget(button) {
     
     // Cập nhật DOM trực tiếp thay vì loadOverview
     const badge = row.querySelector(".target-form .badge");
-    badge.textContent = "Target: " + formatMoney(Number(priceInput.value));
+    badge.textContent = "Target: " + formatMoney(Number(priceInput.value.replace(/\D/g, "")));
     badge.className = "badge good";
     const inputsDiv = row.querySelector(".target-inputs");
     if (inputsDiv) inputsDiv.classList.add("hidden");
@@ -496,6 +496,17 @@ resultsBody.addEventListener("click", async function (event) {
 
   if (button.hasAttribute("data-save-target")) {
     await saveTarget(button);
+  }
+});
+
+resultsBody.addEventListener("input", function(event) {
+  if (event.target.hasAttribute("data-target-price")) {
+    let val = event.target.value.replace(/\D/g, "");
+    if (val) {
+      event.target.value = parseInt(val, 10).toLocaleString("vi-VN");
+    } else {
+      event.target.value = "";
+    }
   }
 });
 
@@ -580,7 +591,7 @@ function checkAuthStatus() {
       loadWatchlist();
     });
   } else if (authStatus) {
-    authStatus.innerHTML = `<button id="btn-show-login" class="btn btn-text"><i class="ph ph-user"></i> Đăng nhập</button>`;
+    authStatus.innerHTML = `<button id="btn-show-login" class="btn btn-primary" style="border-radius: 8px; padding: 6px 12px;"><i class="ph ph-user"></i> Đăng nhập</button>`;
     document.getElementById("btn-show-login").addEventListener("click", showAuthModal);
   }
 }
