@@ -564,6 +564,7 @@ const authSubmit = document.getElementById("auth-submit");
 const authToggleText = document.getElementById("auth-toggle-text");
 const authToggleBtn = document.getElementById("auth-toggle-btn");
 const authError = document.getElementById("auth-error");
+const captchaRefresh = document.getElementById("captcha-refresh");
 
 let isLoginMode = true;
 let captchaResult = 0;
@@ -604,6 +605,10 @@ if (authToggleBtn) {
     if (authConfirmPassword) authConfirmPassword.required = !isLoginMode;
     authError.style.display = "none";
   });
+}
+
+if (captchaRefresh) {
+  captchaRefresh.addEventListener("click", generateCaptcha);
 }
 
 if (authForm) {
