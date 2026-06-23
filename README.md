@@ -1,93 +1,76 @@
-# Price Tracker
+# 📈 Tracker - Hệ Thống Theo Dõi & Phân Tích Giá Cả Ứng Dụng AI
 
-Đây là một đề án Python cơ bản. Ứng dụng cung cấp chức năng cào (scraping) giá sản phẩm từ các trang thương mại điện tử, lưu trữ dữ liệu lịch sử vào MongoDB, phân tích biến động giá và gửi email cảnh báo khi mức giá chạm ngưỡng mục tiêu (target price).
+**Tracker** là một ứng dụng web mạnh mẽ được thiết kế để giúp người dùng theo dõi biến động giá của các sản phẩm công nghệ (hiện đang tập trung vào Hoàng Hà Mobile). Không chỉ dừng lại ở việc lưu trữ lịch sử giá, ứng dụng còn tích hợp **Trí tuệ nhân tạo (Google Gemini)** đóng vai trò như một "Chuyên gia Tài chính", đưa ra các phân tích chuyên sâu và tư vấn điểm rơi thị trường tối ưu nhất để người dùng "chốt đơn".
 
-Mã nguồn được thiết kế theo hướng tối giản: không sử dụng kiến trúc bất đồng bộ (async), không dùng ORM phức tạp và không tích hợp framework frontend.
+---
 
-## Các tính năng chính
+## 🌐 Trải Nghiệm Trực Tuyến (Deployed App)
+Dự án đã được triển khai hoàn chỉnh trên môi trường Cloud, bạn có thể truy cập và trải nghiệm ngay tại:
+- **Frontend (Web App):** [https://pricetracker-zeta-one.vercel.app](https://pricetracker-zeta-one.vercel.app)
+- **Backend (API):** [https://pricetracker-be.onrender.com](https://pricetracker-be.onrender.com)
 
-- Thu thập dữ liệu từ một hoặc nhiều URL sản phẩm.
-- Thực hiện cào dữ liệu HTTP thông qua `requests`.
-- Phân tích và bóc tách cấu trúc DOM (HTML) bằng `selectolax`.
-- Lưu trữ time-series dữ liệu giá vào MongoDB thông qua `pymongo`.
-- Phân tích thống kê: cung cấp giá thấp nhất, cao nhất và trung bình.
-- Động cơ khuyến nghị cơ bản: tính toán tín hiệu (mua ngay, không mua, chờ đợi).
-- Thiết lập mức giá mục tiêu và quản lý danh sách theo dõi (watchlist).
-- Gửi email cảnh báo qua giao thức SMTP (`smtplib`).
+---
 
-## Cấu trúc thư mục
+## 🚀 Tính Năng Nổi Bật (Features)
 
-```text
-DE_AN_PYTHON/
-├── static/
-│   ├── index.html
-│   ├── styles.css
-│   └── app.js
-├── main.py
-├── scraper.py
-├── database.py
-├── mailer.py
-├── requirements.txt
-├── .env.example
-└── README.md
-```
+### 1. 📊 Theo Dõi Lịch Sử Giá & Biểu Đồ Trực Quan
+- Tự động cào (scrape) dữ liệu giá từ các trang thương mại điện tử theo thời gian thực bằng `selectolax`.
+- Hiển thị biểu đồ biến động giá cực kỳ trực quan, mượt mà bằng thư viện `Chart.js`.
+- Bảng xếp hạng, tóm tắt tổng quan về tổng số lượng sản phẩm quét thành công/thất bại.
 
-## Chức năng các file
+### 2. 🧠 Phân Tích Cảnh Báo Thông Minh (Smart Signals)
+Hệ thống tính toán trung bình giá, giá cao nhất, giá thấp nhất lịch sử để phân loại sản phẩm thành 3 nhóm đánh giá:
+- 🟢 **Nên mua (Good):** Giá hiện tại đang ở mức đáy, chạm ngưỡng thấp nhất trong lịch sử theo dõi.
+- 🟡 **Cân nhắc (Watch):** Giá ở mức trung bình, có thể chờ đợi thêm đợt giảm giá.
+- 🔴 **Chưa nên mua (High):** Giá hiện đang bị "thổi" lên cao hơn mức trung bình, tuyệt đối không nên xuống tiền lúc này.
 
-- `main.py`: Điểm neo của ứng dụng, khởi tạo FastAPI server và định nghĩa các HTTP API endpoint.
-- `scraper.py`: Chịu trách nhiệm gọi HTTP request, phân tích DOM để trích xuất tên sản phẩm và giá trị từ các website.
-- `database.py`: Quản lý kết nối MongoDB, thực thi các truy vấn đọc/ghi lịch sử và logic phân tích giá trị.
-- `mailer.py`: Xử lý giao thức SMTP để đẩy email cảnh báo.
-- `static/index.html`: Giao diện người dùng tĩnh (HTML).
-- `static/styles.css`: Bản định kiểu hiển thị.
-- `static/app.js`: Xử lý tương tác phía client, gọi API và kết xuất dữ liệu lên DOM.
+### 3. 🤖 Chuyên Gia Tài Chính AI (AI Chatbot)
+- Được cấp nguồn sức mạnh từ **Google Gemini**, AI có khả năng đọc toàn bộ dữ liệu lịch sử giá của một sản phẩm bất kỳ.
+- Người dùng có thể chat trực tiếp với AI để hỏi về: *Biên độ dao động, lý do tăng giảm, dự báo thời điểm nên mua, hoặc đánh giá chuyên môn về xu hướng giá.*
+- Hỗ trợ lưu trữ lịch sử trò chuyện cục bộ (LocalStorage) giúp người dùng giữ được mạch phân tích mà không cần load lại context.
 
-## Quy trình cài đặt
+### 4. 🔔 Thông Báo Biến Động Giá (Price Alerts)
+- Người dùng có thể thiết lập mức "Giá mục tiêu" (Target Price) cho từng sản phẩm.
+- Khi hệ thống chạy nền (Background Tasks) phát hiện giá giảm chạm mức mục tiêu, một Email cảnh báo tự động sẽ được gửi đến hòm thư của người dùng ngay lập tức.
 
-```powershell
-# Tạo môi trường ảo
-python -m venv venv
+### 5. 🔐 Hệ Thống Người Dùng Chuyên Nghiệp
+- Đăng nhập, Đăng ký bảo mật với JWT (JSON Web Token) và mã hóa mật khẩu `bcrypt`.
+- Quản lý danh sách sản phẩm theo dõi (Watchlist) riêng tư cho từng tài khoản.
+- Tích hợp Captcha tự động (Toán học đơn giản) chống Spam/Bot tạo tài khoản ảo.
 
-# Kích hoạt môi trường (PowerShell)
-.\venv\Scripts\Activate.ps1
+---
 
-# Cài đặt thư viện phụ thuộc
-pip install -r requirements.txt
+## 🛠 Phân Tích Kiến Trúc Kỹ Thuật (Tech Stack)
 
-# Khởi tạo biến môi trường
-Copy-Item .env.example .env
-```
+### Frontend
+- **Giao diện:** HTML5, CSS3 nguyên bản (Vanilla) theo phong cách Modern & Glassmorphism.
+- **Logic:** Vanilla JavaScript.
+- **Thư viện:** Phosphor Icons (Icon), Chart.js (Biểu đồ).
+- **Hosting:** Vercel (Edge Network tải siêu tốc).
 
-## Khởi động Ứng dụng
+### Backend
+- **Core:** Python 3.12 + FastAPI (Bất đồng bộ cực nhanh).
+- **Database:** MongoDB + Motor (Async Driver).
+- **AI Integration:** `google-genai` (Google Gemini API).
+- **Bảo mật:** `passlib`, `PyJWT`.
+- **Hosting:** Render.
 
-```powershell
-# Bắt buộc kích hoạt môi trường ảo trước khi chạy
-.\venv\Scripts\Activate.ps1
+---
 
-# Chạy server FastAPI
-uvicorn main:app --reload
-```
+## 🔮 Hướng Phát Triển Tương Lai (Roadmap)
 
-Truy cập giao diện Web tại trình duyệt: `http://127.0.0.1:8000/`
+1. **Mở Rộng Hệ Sinh Thái (Multi-Platform):**
+   - Hỗ trợ cào dữ liệu (scraping) từ các ông lớn TMĐT khác: Shopee, Lazada, Tiki, CellphoneS, FPT Shop...
+   - Tối ưu cơ chế xoay vòng Proxy (Rotating Proxies) để chống bị chặn (Anti-bot bypass).
 
-## Cấu hình MongoDB
+2. **Tiện Ích Mở Rộng (Chrome Extension):**
+   - Xây dựng Extension giúp người dùng khi đang lướt web mua sắm chỉ cần bấm 1 nút là sản phẩm tự động thêm vào danh sách theo dõi.
 
-Ứng dụng mặc định kết nối tới: `mongodb://localhost:27017`
+3. **Dự Báo Bằng Machine Learning (Price Forecasting):**
+   - Không chỉ nhờ cậy LLM, mà sẽ tự thiết kế hoặc tích hợp mô hình `Time-Series Forecasting` (ví dụ: ARIMA, Prophet) để vẽ thêm đường dự báo xu hướng giá trong 30 ngày tới ngay trên biểu đồ.
 
-Nếu MongoDB Server chưa được khởi động, hệ thống vẫn duy trì tính năng bóc tách giá tức thời. Tuy nhiên, mọi luồng ghi lịch sử và quản lý watchlist sẽ bị rớt (drop).
+4. **Kênh Thông Báo Đa Dạng (Omni-channel Alerts):**
+   - Bên cạnh Email, tích hợp thêm Push Notifications trên điện thoại và cảnh báo qua Telegram Bot / Zalo ZNS.
 
-Khi MongoDB khả dụng, ứng dụng tự động cấp phát:
-- Database: `price_tracker_db`
-- Collections: `price_history`, `watchlist`
-
-## Cấu hình SMTP Email (Tùy chọn)
-
-Để kích hoạt luồng cảnh báo qua email, bổ sung hoặc sửa đổi file `.env`:
-
-```env
-SMTP_USERNAME=your_email@gmail.com
-SMTP_PASSWORD=your_google_app_password
-SMTP_FROM_EMAIL=your_email@gmail.com
-```
-
-Nếu cấu hình SMTP trống, ứng dụng sẽ tự động vô hiệu hóa module gửi thư, quy trình theo dõi giá vẫn vận hành bình thường.
+5. **Phát Triển Mobile App:**
+   - Đóng gói ứng dụng thành Native App (React Native / Flutter) để tiếp cận nhiều đối tượng người dùng cuối hơn.
