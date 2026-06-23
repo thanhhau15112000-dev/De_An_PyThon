@@ -1,76 +1,73 @@
-# 📈 Tracker - Hệ Thống Theo Dõi & Phân Tích Giá Cả Ứng Dụng AI
+# Price Tracker & AI Financial Assistant
 
-**Tracker** là một ứng dụng web mạnh mẽ được thiết kế để giúp người dùng theo dõi biến động giá của các sản phẩm công nghệ (hiện đang tập trung vào Hoàng Hà Mobile). Không chỉ dừng lại ở việc lưu trữ lịch sử giá, ứng dụng còn tích hợp **Trí tuệ nhân tạo (Google Gemini)** đóng vai trò như một "Chuyên gia Tài chính", đưa ra các phân tích chuyên sâu và tư vấn điểm rơi thị trường tối ưu nhất để người dùng "chốt đơn".
+## 1. Tổng Quan Dự Án
+**Price Tracker** là một hệ thống theo dõi và phân tích biến động giá cả trên các nền tảng thương mại điện tử, được phát triển với mục tiêu hỗ trợ người dùng đưa ra quyết định mua sắm tối ưu. Thay vì chỉ cung cấp biểu đồ lịch sử giá đơn thuần, hệ thống được tích hợp Module Phân Tích Thông Minh dựa trên thống kê lịch sử và Mô hình Ngôn ngữ Lớn (LLMs), đóng vai trò như một chuyên gia tư vấn tài chính ảo.
 
----
-
-## 🌐 Trải Nghiệm Trực Tuyến (Deployed App)
-Dự án đã được triển khai hoàn chỉnh trên môi trường Cloud, bạn có thể truy cập và trải nghiệm ngay tại:
-- **Frontend (Web App):** [https://pricetracker-zeta-one.vercel.app](https://pricetracker-zeta-one.vercel.app)
-- **Backend (API):** [https://pricetracker-be.onrender.com](https://pricetracker-be.onrender.com)
+Dự án này là sự kết hợp giữa các kỹ thuật Thu thập dữ liệu (Web Scraping), Xử lý tác vụ nền (Background Tasks), và Trí tuệ nhân tạo (AI Integration).
 
 ---
 
-## 🚀 Tính Năng Nổi Bật (Features)
-
-### 1. 📊 Theo Dõi Lịch Sử Giá & Biểu Đồ Trực Quan
-- Tự động cào (scrape) dữ liệu giá từ các trang thương mại điện tử theo thời gian thực bằng `selectolax`.
-- Hiển thị biểu đồ biến động giá cực kỳ trực quan, mượt mà bằng thư viện `Chart.js`.
-- Bảng xếp hạng, tóm tắt tổng quan về tổng số lượng sản phẩm quét thành công/thất bại.
-
-### 2. 🧠 Phân Tích Cảnh Báo Thông Minh (Smart Signals)
-Hệ thống tính toán trung bình giá, giá cao nhất, giá thấp nhất lịch sử để phân loại sản phẩm thành 3 nhóm đánh giá:
-- 🟢 **Nên mua (Good):** Giá hiện tại đang ở mức đáy, chạm ngưỡng thấp nhất trong lịch sử theo dõi.
-- 🟡 **Cân nhắc (Watch):** Giá ở mức trung bình, có thể chờ đợi thêm đợt giảm giá.
-- 🔴 **Chưa nên mua (High):** Giá hiện đang bị "thổi" lên cao hơn mức trung bình, tuyệt đối không nên xuống tiền lúc này.
-
-### 3. 🤖 Chuyên Gia Tài Chính AI (AI Chatbot)
-- Được cấp nguồn sức mạnh từ **Google Gemini**, AI có khả năng đọc toàn bộ dữ liệu lịch sử giá của một sản phẩm bất kỳ.
-- Người dùng có thể chat trực tiếp với AI để hỏi về: *Biên độ dao động, lý do tăng giảm, dự báo thời điểm nên mua, hoặc đánh giá chuyên môn về xu hướng giá.*
-- Hỗ trợ lưu trữ lịch sử trò chuyện cục bộ (LocalStorage) giúp người dùng giữ được mạch phân tích mà không cần load lại context.
-
-### 4. 🔔 Thông Báo Biến Động Giá (Price Alerts)
-- Người dùng có thể thiết lập mức "Giá mục tiêu" (Target Price) cho từng sản phẩm.
-- Khi hệ thống chạy nền (Background Tasks) phát hiện giá giảm chạm mức mục tiêu, một Email cảnh báo tự động sẽ được gửi đến hòm thư của người dùng ngay lập tức.
-
-### 5. 🔐 Hệ Thống Người Dùng Chuyên Nghiệp
-- Đăng nhập, Đăng ký bảo mật với JWT (JSON Web Token) và mã hóa mật khẩu `bcrypt`.
-- Quản lý danh sách sản phẩm theo dõi (Watchlist) riêng tư cho từng tài khoản.
-- Tích hợp Captcha tự động (Toán học đơn giản) chống Spam/Bot tạo tài khoản ảo.
+## 2. Trải Nghiệm Hệ Thống (Live Deployment)
+Hệ thống hiện đã được đóng gói và triển khai trên hạ tầng Cloud, cho phép truy cập và sử dụng trực tiếp:
+- **Giao diện Người Dùng (Frontend):** [https://pricetracker-zeta-one.vercel.app](https://pricetracker-zeta-one.vercel.app)
+- **Hệ thống Máy Chủ (Backend API):** [https://pricetracker-be.onrender.com](https://pricetracker-be.onrender.com)
 
 ---
 
-## 🛠 Phân Tích Kiến Trúc Kỹ Thuật (Tech Stack)
+## 3. Kiến Trúc Kỹ Thuật (Technology Stack)
 
-### Frontend
-- **Giao diện:** HTML5, CSS3 nguyên bản (Vanilla) theo phong cách Modern & Glassmorphism.
-- **Logic:** Vanilla JavaScript.
-- **Thư viện:** Phosphor Icons (Icon), Chart.js (Biểu đồ).
-- **Hosting:** Vercel (Edge Network tải siêu tốc).
+Hệ thống được thiết kế theo kiến trúc Client - Server với sự tách biệt rõ ràng giữa các phân hệ:
 
-### Backend
-- **Core:** Python 3.12 + FastAPI (Bất đồng bộ cực nhanh).
-- **Database:** MongoDB + Motor (Async Driver).
-- **AI Integration:** `google-genai` (Google Gemini API).
-- **Bảo mật:** `passlib`, `PyJWT`.
-- **Hosting:** Render.
+- **Frontend:**
+  - Ngôn ngữ: HTML5, CSS3, Vanilla JavaScript.
+  - UI/UX: Áp dụng nguyên lý Modern Web Design, Glassmorphism, Responsive Design.
+  - Thư viện hỗ trợ: `Chart.js` (Trực quan hóa dữ liệu), `Phosphor Icons` (Hệ thống biểu tượng).
+  - Triển khai: Vercel.
+
+- **Backend:**
+  - Framework: Python 3.12, FastAPI (Xử lý bất đồng bộ hiệu suất cao).
+  - Cơ sở dữ liệu: MongoDB (Lưu trữ Document linh hoạt), Motor (Async MongoDB Driver).
+  - Web Scraping: `selectolax`, `httpx`.
+  - Authentication: JSON Web Token (JWT), `passlib`, `bcrypt`.
+  - AI Integration: `google-genai` (Google Gemini API).
+  - Triển khai: Render.
 
 ---
 
-## 🔮 Hướng Phát Triển Tương Lai (Roadmap)
+## 4. Các Tính Năng Cốt Lõi
 
-1. **Mở Rộng Hệ Sinh Thái (Multi-Platform):**
-   - Hỗ trợ cào dữ liệu (scraping) từ các ông lớn TMĐT khác: Shopee, Lazada, Tiki, CellphoneS, FPT Shop...
-   - Tối ưu cơ chế xoay vòng Proxy (Rotating Proxies) để chống bị chặn (Anti-bot bypass).
+### 4.1. Hệ Thống Thu Thập và Trực Quan Hóa Dữ Liệu
+- Tự động bóc tách và trích xuất dữ liệu giá cả từ các liên kết thương mại điện tử được cung cấp.
+- Trực quan hóa dữ liệu lịch sử giá dưới dạng biểu đồ đường (Line Chart) theo thời gian thực, giúp người dùng dễ dàng nhận diện xu hướng tăng/giảm của thị trường.
 
-2. **Tiện Ích Mở Rộng (Chrome Extension):**
-   - Xây dựng Extension giúp người dùng khi đang lướt web mua sắm chỉ cần bấm 1 nút là sản phẩm tự động thêm vào danh sách theo dõi.
+### 4.2. Cơ Chế Phân Tích Tín Hiệu Khuyến Nghị (Smart Signals)
+Hệ thống tự động tính toán các chỉ số thống kê (Giá thấp nhất, cao nhất, trung bình) trên tập dữ liệu lịch sử của từng sản phẩm để đưa ra 3 loại tín hiệu giao dịch:
+- **Nên mua (Good - Tín hiệu Xanh):** Khi mức giá hiện tại đang ở ngưỡng thấp nhất hoặc bằng với đáy của lịch sử theo dõi.
+- **Cân nhắc (Watch - Tín hiệu Vàng):** Khi mức giá hiện tại nằm trong khoảng an toàn (cao hơn mức đáy nhưng thấp hơn hoặc bằng mức trung bình).
+- **Chưa nên mua (High - Tín hiệu Đỏ):** Khi mức giá hiện tại vượt mức trung bình lịch sử, cho thấy sản phẩm đang bị định giá cao tại thời điểm đánh giá.
 
-3. **Dự Báo Bằng Machine Learning (Price Forecasting):**
-   - Không chỉ nhờ cậy LLM, mà sẽ tự thiết kế hoặc tích hợp mô hình `Time-Series Forecasting` (ví dụ: ARIMA, Prophet) để vẽ thêm đường dự báo xu hướng giá trong 30 ngày tới ngay trên biểu đồ.
+### 4.3. Chuyên Gia Tài Chính Trí Tuệ Nhân Tạo (AI Chatbot)
+- Tích hợp Google Gemini để phân tích mảng dữ liệu lịch sử giá dưới dạng chuỗi thời gian.
+- Cung cấp giao diện đàm thoại (Chat Interface) cho phép người dùng đặt câu hỏi trực tiếp về sản phẩm. AI sẽ phản hồi bằng văn bản tự nhiên, đánh giá chuyên sâu về biên độ dao động, rủi ro biến động, và đưa ra lời khuyên mua sắm mang tính cá nhân hóa.
 
-4. **Kênh Thông Báo Đa Dạng (Omni-channel Alerts):**
-   - Bên cạnh Email, tích hợp thêm Push Notifications trên điện thoại và cảnh báo qua Telegram Bot / Zalo ZNS.
+### 4.4. Hệ Thống Cảnh Báo Tự Động (Automated Price Alerts)
+- Cho phép người dùng thiết lập mức "Giá mục tiêu" (Target Price) cho từng sản phẩm.
+- Các tác vụ nền (Background Workers) liên tục chạy theo chu kỳ để cập nhật giá mới. Khi phát hiện giá thị trường giảm xuống dưới hoặc bằng mức Giá mục tiêu, hệ thống tự động gửi Email cảnh báo (`smtplib`) đến người dùng.
 
-5. **Phát Triển Mobile App:**
-   - Đóng gói ứng dụng thành Native App (React Native / Flutter) để tiếp cận nhiều đối tượng người dùng cuối hơn.
+### 4.5. Phân Hệ Quản Trị Người Dùng
+- Cung cấp đầy đủ các chức năng Đăng ký, Đăng nhập, và Quản lý phiên làm việc.
+- Dữ liệu mật khẩu được băm (hash) bằng thuật toán mã hóa một chiều `bcrypt`.
+- Mỗi tài khoản sở hữu một danh mục theo dõi (Watchlist) độc lập và bảo mật.
+
+---
+
+## 5. Định Hướng Phát Triển Tương Lai
+
+1. **Ứng dụng Mô hình Học máy (Machine Learning Forecast):**
+   - Nghiên cứu và tích hợp các mô hình dự báo chuỗi thời gian (Time-Series Forecasting) như ARIMA, LSTM hoặc Prophet để vẽ đường dự báo xu hướng giá trong tương lai trên biểu đồ, thay vì chỉ phân tích dữ liệu quá khứ.
+2. **Mở rộng Hệ sinh thái Scraping:**
+   - Xây dựng kiến trúc Microservices để hỗ trợ trích xuất dữ liệu từ đa dạng các sàn thương mại điện tử lớn (Shopee, Lazada, Tiki, Amazon).
+   - Tích hợp các giải pháp Rotating Proxies và User-Agent ngẫu nhiên nhằm giảm thiểu tỷ lệ bị chặn bởi cơ chế Anti-bot.
+3. **Phát triển Ứng dụng Di động & Tiện ích Mở rộng:**
+   - Xây dựng Browser Extension (Chrome/Edge) cho phép người dùng thêm sản phẩm vào danh sách theo dõi chỉ bằng một thao tác nhấp chuột khi đang duyệt web.
+   - Phát triển ứng dụng di động (Cross-platform bằng Flutter/React Native) và tích hợp Push Notifications thay vì chỉ sử dụng Email.
