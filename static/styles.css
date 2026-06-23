@@ -264,8 +264,11 @@ textarea:focus, input:focus {
 
 table {
   width: 100%;
-  min-width: 800px;
   border-collapse: collapse;
+}
+
+table.has-data {
+  min-width: 800px;
 }
 
 th {
@@ -368,6 +371,8 @@ tr:last-child td {
   border: 1px solid var(--border-light);
   border-radius: 8px;
   padding: 20px;
+  min-width: 0;
+  width: 100%;
 }
 
 .watch-card h3 {
@@ -498,6 +503,14 @@ tr:last-child td {
 
   .page {
     padding: 24px 16px;
+  }
+
+  .section-header {
+    text-align: center;
+  }
+
+  .action-row {
+    justify-content: center;
   }
 
   .ai-fab {

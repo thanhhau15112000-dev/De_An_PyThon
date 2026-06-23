@@ -81,10 +81,14 @@ function getSignalText(signal) {
 }
 
 function renderResults(items) {
+  const tableEl = document.querySelector("table");
   if (items.length === 0) {
-    resultsBody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Vui lòng nhập danh sách URL và tiến hành quét để xem kết quả.</div></td></tr>`;
+    if (tableEl) tableEl.classList.remove("has-data");
+    resultsBody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="text-align: center;">Vui lòng nhập danh sách URL và tiến hành quét để xem kết quả.</div></td></tr>`;
     return;
   }
+
+  if (tableEl) tableEl.classList.add("has-data");
 
   let html = "";
   for (let item of items) {
