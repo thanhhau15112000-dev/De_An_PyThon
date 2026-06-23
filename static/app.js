@@ -192,7 +192,15 @@ function renderChatMessages() {
     `;
   }
   aiChatBody.innerHTML = html;
-  aiChatBody.scrollTop = aiChatBody.scrollHeight;
+  
+  const lastMsgElement = aiChatBody.lastElementChild;
+  if (lastMsgElement) {
+    if (lastMsgElement.classList.contains("ai") && !lastMsgElement.innerHTML.includes("loading-dots")) {
+      lastMsgElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      aiChatBody.scrollTop = aiChatBody.scrollHeight;
+    }
+  }
 }
 
 aiChatForm.addEventListener("submit", async function(e) {
