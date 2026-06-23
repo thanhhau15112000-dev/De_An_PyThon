@@ -128,9 +128,9 @@ async def save_target(url: str, target_price: int, email: str = "", platform: st
     except Exception as error:
         return False, str(error)
 
-async def get_targets(limit: int = 30):
+async def get_targets(email: str, limit: int = 30):
     try:
-        cursor = db_ctx.db["watchlist"].find({}).sort("updated_at", -1).limit(limit)
+        cursor = db_ctx.db["watchlist"].find({"email": email}).sort("updated_at", -1).limit(limit)
         data = await cursor.to_list(length=limit)
         return [remove_id(item) for item in data]
     except Exception:

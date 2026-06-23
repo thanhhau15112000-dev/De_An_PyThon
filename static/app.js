@@ -259,7 +259,21 @@ async function loadOverview() {
 }
 
 async function loadWatchlist() {
-  const data = await callApi("/api/watchlist?limit=30");
+  const token = localStorage.getItem("token");
+  if (!token) {
+    renderWatchlist({ items: [] });
+    return;
+  }
+  try {
+    const targets = await callApi("/api/watchlist");
+    renderWatchlist(targets);
+  } catch (err) {
+    console.error("Watchlist fetch error", err);
+    renderWatchlist({ items: [] });
+  }
+}
+
+function renderWatchlist(data) {
   const items = data.items || [];
 
   if (items.length === 0) {

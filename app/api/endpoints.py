@@ -138,8 +138,8 @@ async def overview(limit: int = 20):
     return jsonable_encoder({"items": data, "count": len(data)})
 
 @router.get("/watchlist")
-async def watchlist(limit: int = 30):
-    data = await get_targets(limit)
+async def watchlist(limit: int = 30, current_user: str = Depends(get_current_user)):
+    data = await get_targets(current_user, limit)
     return jsonable_encoder({"items": data, "count": len(data)})
 
 @router.post("/watchlist")
