@@ -708,8 +708,8 @@ if (authForm) {
 function checkAuthStatus() {
   const email = localStorage.getItem("user_email");
   if (email && authStatus) {
-    authStatus.innerHTML = `<span style="font-size: 0.9rem; font-weight: 500; color: var(--text);"><i class="ph ph-user"></i> ${email}</span>
-                            <button id="btn-logout" class="btn btn-text" style="color: var(--primary); padding: 4px;" title="Đăng xuất"><i class="ph ph-sign-out" style="font-size: 1.25rem;"></i></button>`;
+    authStatus.innerHTML = `<span style="font-size: 0.95rem; font-weight: 500; color: white;"><i class="ph ph-user"></i> ${email}</span>
+                            <button id="btn-logout" class="btn btn-white" style="border-radius: 8px; padding: 4px 8px; margin-left: 8px;" title="Đăng xuất"><i class="ph ph-sign-out" style="font-size: 1.25rem;"></i></button>`;
     document.getElementById("btn-logout").addEventListener("click", () => {
       localStorage.removeItem("token");
       localStorage.removeItem("user_email");
@@ -717,7 +717,7 @@ function checkAuthStatus() {
       loadWatchlist();
     });
   } else if (authStatus) {
-    authStatus.innerHTML = `<button id="btn-show-login" class="btn btn-primary" style="border-radius: 8px; padding: 6px 12px;"><i class="ph ph-user"></i> Đăng nhập</button>`;
+    authStatus.innerHTML = `<button id="btn-show-login" class="btn btn-outline-white" style="border-radius: 8px; padding: 6px 12px;"><i class="ph ph-user"></i> Đăng nhập</button>`;
     document.getElementById("btn-show-login").addEventListener("click", showAuthModal);
   }
 }

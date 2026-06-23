@@ -240,6 +240,17 @@ textarea:focus, input:focus {
   transform: translateY(-1px);
 }
 
+.btn-white {
+  background: white;
+  color: var(--primary);
+  border: 1px solid white;
+}
+
+.btn-white:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
 .btn-text {
   background: transparent;
   color: var(--text-muted);
