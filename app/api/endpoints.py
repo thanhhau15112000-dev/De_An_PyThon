@@ -5,6 +5,7 @@ from starlette.concurrency import run_in_threadpool
 from app.models.schemas import ScanRequest, TargetRequest
 from app.services.scraper import STORE_CONFIG, scrape_product, scrape_products
 from app.services.analysis import analyze_price, save_price, get_history, get_latest_prices, get_targets, save_target, get_target_by_url, update_target_after_scan, now
+from app.services.ai_insight import generate_insight
 from app.services.mailer import send_price_alert_sync
 
 router = APIRouter()
@@ -113,6 +114,12 @@ async def scan(data: ScanRequest):
 async def history(url: str, limit: int = 30):
     data = await get_history(url, limit)
     return jsonable_encoder({"url": url, "history": data, "count": len(data)})
+
+@router.get("/ai-insight")
+async def ai_insight(url: str, product_name: str = "Sản phẩm"):
+    data = await get_history(url, limit=30)
+    insight = await generate_insight(product_name, data)
+    return jsonable_encoder({"url": url, "insight": insight})
 
 @router.get("/overview")
 async def overview(limit: int = 20):

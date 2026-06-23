@@ -117,6 +117,11 @@ function renderResults(items) {
             </div>
           </div>
         </td>
+        <td>
+          <div class="ai-insight-cell" data-url="${escapeHtml(item.url)}" data-product="${escapeHtml(item.product_name || "Sản phẩm")}">
+            <span style="color: var(--text-muted); font-size: 0.85rem;"><i class="ph ph-spinner-gap ph-spin"></i> Chờ AI...</span>
+          </div>
+        </td>
         <td class="text-right">
           <button class="btn btn-text"
             data-history-url="${escapeHtml(item.url)}"
@@ -128,6 +133,34 @@ function renderResults(items) {
     `;
   }
   resultsBody.innerHTML = html;
+  
+  // Kích hoạt việc tải AI insight
+  fetchAiInsights();
+}
+
+async function fetchAiInsights() {
+  const cells = document.querySelectorAll('.ai-insight-cell');
+  for (const cell of cells) {
+    const url = cell.getAttribute('data-url');
+    const productName = cell.getAttribute('data-product');
+    if (!url) continue;
+    if (cell.getAttribute('data-fetched') === 'true') continue;
+    cell.setAttribute('data-fetched', 'true');
+
+    try {
+      const data = await callApi(`/api/ai-insight?url=${encodeURIComponent(url)}&product_name=${encodeURIComponent(productName)}`);
+      if (data.insight) {
+        // Chuyển markdown in đậm cơ bản thành HTML
+        let formatted = data.insight.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--primary);">$1</strong>');
+        formatted = formatted.replace(/\n/g, '<br>');
+        cell.innerHTML = `<div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-dark);">${formatted}</div>`;
+      } else {
+        cell.innerHTML = `<span style="color: var(--danger); font-size: 0.85rem;">Lỗi phân tích</span>`;
+      }
+    } catch (e) {
+      cell.innerHTML = `<span style="color: var(--danger); font-size: 0.85rem;">Lỗi kết nối AI</span>`;
+    }
+  }
 }
 
 async function loadOverview() {
