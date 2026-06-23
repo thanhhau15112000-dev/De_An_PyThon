@@ -136,10 +136,11 @@ a:hover {
   margin-bottom: 32px;
 }
 
-.left-col {
+.left-col, .right-col {
   display: flex;
   flex-direction: column;
   gap: 32px;
+  min-width: 0;
 }
 
 .full-width {
@@ -384,9 +385,8 @@ tr:last-child td {
   color: var(--text-muted);
   margin-bottom: 12px;
   display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-all;
+  white-space: normal;
 }
 
 .watch-card .target-val {
