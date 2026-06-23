@@ -72,7 +72,7 @@ function getSignalText(signal) {
 
 function renderResults(items) {
   if (items.length === 0) {
-    resultsBody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Chưa có dữ liệu.</div></td></tr>`;
+    resultsBody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Vui lòng nhập danh sách URL và tiến hành quét để xem kết quả.</div></td></tr>`;
     return;
   }
 
@@ -298,7 +298,14 @@ async function saveTarget(button) {
         }),
       });
     await loadWatchlist();
-    await loadOverview();
+    
+    // Cập nhật DOM trực tiếp thay vì loadOverview
+    const badge = row.querySelector(".target-form .badge");
+    badge.textContent = "Target: " + formatMoney(Number(priceInput.value));
+    badge.className = "badge good";
+    const inputsDiv = row.querySelector(".target-inputs");
+    if (inputsDiv) inputsDiv.classList.add("hidden");
+    
   } catch (error) {}
 
   button.disabled = false;
@@ -333,5 +340,5 @@ resultsBody.addEventListener("click", async function (event) {
   }
 });
 
-loadOverview();
+renderResults([]);
 loadWatchlist();
