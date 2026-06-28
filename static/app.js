@@ -852,15 +852,14 @@ async function checkAuthStatus() {
       const tier = data.tier.toUpperCase();
       const usage = `${data.targets_count}/${data.targets_limit}`;
       
-      let badgeColor = "var(--text-muted)";
-      let badgeText = `GÓI ${tier}`;
+      let badgeColor = "#ffffff";
+      let badgeText = tier;
       
       if (tier === "MAX") {
-        badgeColor = "#d97706";
+        badgeText = "MAX";
       } else if (tier === "PREMIUM") {
-        badgeColor = "#ffffff";
+        badgeText = "PREMIUM";
       } else if (tier === "FREE") {
-        badgeColor = "#ffffff";
         badgeText = "FREE";
       }
       
