@@ -719,6 +719,51 @@ function showUpgradeModal() {
   document.getElementById("upgrade-modal-overlay").classList.remove("hidden");
 }
 
+function closeUpgradeModal() {
+  document.getElementById("upgrade-modal").style.display = "none";
+}
+
+async function checkoutSepay(tier) {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+  
+  try {
+    // Gọi API để lấy form fields
+    const res = await fetch(API_BASE_URL + "/api/sepay/checkout", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ tier: tier })
+    });
+    
+    if (!res.ok) throw new Error("Không thể tạo đơn hàng SePay");
+    const data = await res.json();
+    
+    // Khởi tạo Form tự động Submit (như cách SePay Checkout hoạt động)
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = data.checkout_url;
+    form.style.display = "none";
+    
+    // Thêm các thẻ input hidden
+    for (const key in data.fields) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = data.fields[key];
+      form.appendChild(input);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+// Global modal handling
 document.getElementById("upgrade-close")?.addEventListener("click", () => {
   document.getElementById("upgrade-modal-overlay").classList.add("hidden");
 });

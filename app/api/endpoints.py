@@ -219,7 +219,26 @@ async def create_watch(data: TargetRequest, platform: str = "unknown", product_n
         "target_price": data.target_price,
         "email": current_user,
     }
+from pydantic import BaseModel
 
+class CheckoutRequest(BaseModel):
+    tier: str
+
+@router.post("/sepay/checkout")
+async def create_checkout(data: CheckoutRequest, current_user: str = Depends(get_current_user)):
+    from app.services.sepay_pg import generate_sepay_checkout_payload
+    from fastapi import HTTPException
+    
+    tier = data.tier.lower()
+    if tier == "premium":
+        amount = 49000
+    elif tier == "max":
+        amount = 499000
+    else:
+        raise HTTPException(status_code=400, detail="Gói cước không hợp lệ")
+        
+    payload = generate_sepay_checkout_payload(current_user, tier, amount)
+    return payload
 @router.post("/sepay/webhook")
 async def sepay_webhook(request: Request):
     from app.database.connection import db_ctx
