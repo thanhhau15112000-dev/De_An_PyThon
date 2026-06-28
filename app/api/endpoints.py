@@ -245,9 +245,9 @@ async def sepay_webhook(request: Request):
     email = match.group(1).lower()
     
     tier = "free"
-    if amount >= 499000:
+    if amount >= 2999:
         tier = "max"
-    elif amount >= 49000:
+    elif amount >= 2000:
         tier = "premium"
     else:
         return {"status": "error", "message": f"Insufficient amount: {amount}"}

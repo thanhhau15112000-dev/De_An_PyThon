@@ -726,12 +726,13 @@ function checkoutSepay(tier) {
     return;
   }
   
-  const amount = tier === "premium" ? 49000 : 499000;
+  const amount = tier === "premium" ? 2000 : 2999;
   const description = `UPGRADE ${email}`;
   const bank = "MBBank";
-  const acc = "TEST000000001"; // Fake account for testing
+  const acc = "010215112007";
+  const holder = "LE THANH HAU";
   
-  const qrUrl = `https://vietqr.app/img?bank=${bank}&acc=${acc}&amount=${amount}&des=${encodeURIComponent(description)}&template=compact`;
+  const qrUrl = `https://vietqr.app/img?bank=${bank}&acc=${acc}&amount=${amount}&des=${encodeURIComponent(description)}&template=compact&showinfo=true&holder=${encodeURIComponent(holder)}`;
   
   document.getElementById("qr-image").src = qrUrl;
   document.getElementById("qr-description").textContent = description;
