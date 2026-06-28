@@ -719,49 +719,36 @@ function closeUpgradeModal() {
   document.getElementById("upgrade-modal").style.display = "none";
 }
 
-async function checkoutSepay(tier) {
-  const token = localStorage.getItem("token");
-  if (!token) return;
-  
-  try {
-    // Gọi API để lấy form fields
-    const res = await fetch(API_BASE_URL + "/api/sepay/checkout", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ tier: tier })
-    });
-    
-    if (!res.ok) throw new Error("Không thể tạo đơn hàng SePay");
-    const data = await res.json();
-    
-    // Khởi tạo Form tự động Submit (như cách SePay Checkout hoạt động)
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = data.checkout_url;
-    form.style.display = "none";
-    
-    // Thêm các thẻ input hidden
-    for (const key in data.fields) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = data.fields[key];
-      form.appendChild(input);
-    }
-    
-    document.body.appendChild(form);
-    form.submit();
-  } catch (err) {
-    alert(err.message);
+function checkoutSepay(tier) {
+  const email = localStorage.getItem("user_email");
+  if (!email) {
+    alert("Vui lòng đăng nhập lại!");
+    return;
   }
+  
+  const amount = tier === "premium" ? 49000 : 499000;
+  const description = `UPGRADE ${email}`;
+  const bank = "MBBank";
+  const acc = "00000000001";
+  
+  const qrUrl = `https://vietqr.app/img?bank=${bank}&acc=${acc}&amount=${amount}&des=${encodeURIComponent(description)}&template=compact`;
+  
+  document.getElementById("qr-image").src = qrUrl;
+  document.getElementById("qr-description").textContent = description;
+  
+  document.getElementById("upgrade-packages").style.display = "none";
+  document.getElementById("upgrade-qr").style.display = "block";
+}
+
+function resetUpgradeModal() {
+  document.getElementById("upgrade-packages").style.display = "block";
+  document.getElementById("upgrade-qr").style.display = "none";
 }
 
 // Global modal handling
 document.getElementById("upgrade-close")?.addEventListener("click", () => {
   document.getElementById("upgrade-modal-overlay").classList.add("hidden");
+  setTimeout(resetUpgradeModal, 300); // reset after animation
 });
 
 async function checkAuthStatus() {
