@@ -721,12 +721,32 @@ function closeUpgradeModal() {
 
 let checkUpgradeInterval = null;
 
-function checkoutSepay(tier) {
+async function checkoutSepay(tier) {
   const email = localStorage.getItem("user_email");
-  if (!email) {
+  const token = localStorage.getItem("token");
+  
+  if (!email || !token) {
     alert("Vui lòng đăng nhập lại!");
     return;
   }
+  
+  // Check current tier first to prevent instant success bug
+  try {
+    const res = await fetch(API_BASE_URL + "/api/me", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.tier === tier) {
+        alert(`Bạn đang sử dụng gói ${tier.toUpperCase()} rồi!`);
+        return;
+      }
+      if (data.tier === "max" && tier === "premium") {
+        alert("Bạn đang sử dụng gói MAX cao cấp nhất rồi, không cần mua gói thấp hơn!");
+        return;
+      }
+    }
+  } catch (e) {}
   
   const amount = tier === "premium" ? 2000 : 2999;
   const description = `UPGRADE ${email}`;
