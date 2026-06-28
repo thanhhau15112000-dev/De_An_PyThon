@@ -737,19 +737,34 @@ async function checkoutSepay(tier) {
     });
     if (res.ok) {
       const data = await res.json();
-      if (data.tier === tier) {
-        alert(`Bạn đang sử dụng gói ${tier.toUpperCase()} rồi!`);
-        return;
-      }
-      if (data.tier === "max" && tier === "premium") {
-        alert("Bạn đang sử dụng gói MAX cao cấp nhất rồi, không cần mua gói thấp hơn!");
-        return;
+      if (tier === "degrade") {
+        if (data.tier === "free") {
+          alert("Tài khoản của bạn đã ở mức FREE, không thể hủy thêm!");
+          return;
+        }
+      } else {
+        if (data.tier === tier) {
+          alert(`Bạn đang sử dụng gói ${tier.toUpperCase()} rồi!`);
+          return;
+        }
+        if (data.tier === "max" && tier === "premium") {
+          alert("Bạn đang sử dụng gói MAX cao cấp nhất rồi, không cần mua gói thấp hơn!");
+          return;
+        }
       }
     }
   } catch (e) {}
   
-  const amount = tier === "premium" ? 2000 : 2999;
-  const description = `UPGRADE ${email}`;
+  let amount = 2000;
+  let description = `UPGRADE ${email}`;
+  
+  if (tier === "degrade") {
+    amount = 2000;
+    description = `DEGRADE ${email}`;
+  } else if (tier === "max") {
+    amount = 2999;
+  }
+  
   const bank = "MBBank";
   const acc = "010215112007";
   const holder = "LE THANH HAU";
@@ -775,7 +790,9 @@ async function checkoutSepay(tier) {
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.tier === tier || (tier === 'premium' && data.tier === 'max')) {
+        const successCondition = tier === "degrade" ? (data.tier === "free") : (data.tier === tier || (tier === 'premium' && data.tier === 'max'));
+        
+        if (successCondition) {
           clearInterval(checkUpgradeInterval);
           
           const successOverlay = document.createElement("div");
