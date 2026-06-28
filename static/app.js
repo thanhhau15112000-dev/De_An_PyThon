@@ -712,10 +712,6 @@ if (authForm) {
 }
 
 function showUpgradeModal() {
-  const email = localStorage.getItem("user_email");
-  if (email) {
-    document.getElementById("upgrade-syntax").textContent = `UPGRADE ${email}`;
-  }
   document.getElementById("upgrade-modal-overlay").classList.remove("hidden");
 }
 
