@@ -778,6 +778,7 @@ document.getElementById("upgrade-close")?.addEventListener("click", () => {
 async function checkAuthStatus() {
   const token = localStorage.getItem("token");
   if (token && authStatus) {
+    authStatus.innerHTML = `<button class="btn btn-outline-white" style="border-radius: 8px; padding: 6px 12px; cursor: not-allowed;" disabled><i class="ph ph-spinner ph-spin"></i> Đang tải...</button>`;
     try {
       const res = await fetch(API_BASE_URL + "/api/me", {
         headers: { "Authorization": `Bearer ${token}` }
