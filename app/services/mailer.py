@@ -42,7 +42,7 @@ def send_price_alert_sync(to_email: str, product_name: str, current_price: str, 
     message.set_content(html_content, subtype='html')
 
     try:
-        server = IPv4SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+        server = IPv4SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10)
         server.starttls()
         server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
         server.send_message(message)
