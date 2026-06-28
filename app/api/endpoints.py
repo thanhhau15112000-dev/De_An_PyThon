@@ -8,7 +8,7 @@ from app.services.scraper import STORE_CONFIG, scrape_product, scrape_products
 from app.services.analysis import analyze_price, save_price, get_history, get_latest_prices, get_targets, save_target, get_targets_by_url, update_target_after_scan, now
 from app.services.ai_insight import generate_insight, chat_with_ai
 from app.services.mailer import send_price_alert_sync
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_optional_user
 
 router = APIRouter()
 
@@ -25,7 +25,7 @@ async def supported_platforms():
         stores.append({"platform": store_name, "domains": config["domains"]})
     return {"platforms": stores}
 
-async def process_result(result: dict, background_tasks: BackgroundTasks = None):
+async def process_result(result: dict, background_tasks: BackgroundTasks = None, current_user: str = None):
     result["scraped_at"] = now()
     result["storage_status"] = "skipped"
     result["target_price"] = None
@@ -45,38 +45,43 @@ async def process_result(result: dict, background_tasks: BackgroundTasks = None)
     result["analysis"] = analysis
     result["buy_signal"] = analysis["buy_signal"]
     result["note"] = analysis["note"]
+    
+    user_target_price = None
+    user_alert_hit = False
 
     targets = await get_targets_by_url(result["url"])
     for target in targets:
         t_price = target.get("target_price")
+        target_email = target.get("email", "")
         
-        if t_price is not None:
-            result["target_price"] = t_price
-            
+        if current_user and target_email == current_user:
+            if t_price is not None:
+                user_target_price = t_price
+            if t_price is not None and result["price_value"] is not None and result["price_value"] <= t_price:
+                user_alert_hit = True
+                
         if t_price is not None and result["price_value"] is not None and result["price_value"] <= t_price:
-            result["alert_hit"] = True
             if background_tasks:
                 background_tasks.add_task(
                     send_price_alert_sync,
-                    target.get("email", ""),
+                    target_email,
                     result["product_name"],
                     result["price"],
                     t_price,
                     result["url"],
                 )
-                result["alert_status"] = "queued"
-                result["alert_error"] = ""
             else:
-                sent, error = await run_in_threadpool(
+                await run_in_threadpool(
                     send_price_alert_sync,
-                    target.get("email", ""),
+                    target_email,
                     result["product_name"],
                     result["price"],
                     t_price,
                     result["url"],
                 )
-                result["alert_status"] = "sent" if sent else "failed"
-                result["alert_error"] = error
+
+    result["target_price"] = user_target_price
+    result["alert_hit"] = user_alert_hit
 
     saved, error = await save_price({
         "url": result["url"],
@@ -101,16 +106,16 @@ async def process_result(result: dict, background_tasks: BackgroundTasks = None)
     return result
 
 @router.get("/check-price")
-async def check_price(url: str, background_tasks: BackgroundTasks):
+async def check_price(url: str, background_tasks: BackgroundTasks, current_user: str = Depends(get_optional_user)):
     raw_result = await scrape_product(url)
-    result = await process_result(raw_result, background_tasks)
+    result = await process_result(raw_result, background_tasks, current_user)
     return jsonable_encoder(result)
 
 @router.post("/scan")
-async def scan(data: ScanRequest, background_tasks: BackgroundTasks):
+async def scan(data: ScanRequest, background_tasks: BackgroundTasks, current_user: str = Depends(get_optional_user)):
     raw_results = await scrape_products(data.urls)
     
-    tasks = [process_result(item, background_tasks) for item in raw_results]
+    tasks = [process_result(item, background_tasks, current_user) for item in raw_results]
     processed_results = await asyncio.gather(*tasks)
     
     results = [jsonable_encoder(p) for p in processed_results]
