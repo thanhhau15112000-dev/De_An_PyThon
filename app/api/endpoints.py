@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.encoders import jsonable_encoder
 from starlette.concurrency import run_in_threadpool
@@ -24,7 +25,7 @@ async def supported_platforms():
         stores.append({"platform": store_name, "domains": config["domains"]})
     return {"platforms": stores}
 
-async def process_result(result: dict):
+async def process_result(result: dict, background_tasks: BackgroundTasks = None):
     result["scraped_at"] = now()
     result["storage_status"] = "skipped"
     result["target_price"] = None
@@ -54,16 +55,28 @@ async def process_result(result: dict):
             
         if t_price is not None and result["price_value"] is not None and result["price_value"] <= t_price:
             result["alert_hit"] = True
-            sent, error = await run_in_threadpool(
-                send_price_alert_sync,
-                target.get("email", ""),
-                result["product_name"],
-                result["price"],
-                t_price,
-                result["url"],
-            )
-            result["alert_status"] = "sent" if sent else "failed"
-            result["alert_error"] = error
+            if background_tasks:
+                background_tasks.add_task(
+                    send_price_alert_sync,
+                    target.get("email", ""),
+                    result["product_name"],
+                    result["price"],
+                    t_price,
+                    result["url"],
+                )
+                result["alert_status"] = "queued"
+                result["alert_error"] = ""
+            else:
+                sent, error = await run_in_threadpool(
+                    send_price_alert_sync,
+                    target.get("email", ""),
+                    result["product_name"],
+                    result["price"],
+                    t_price,
+                    result["url"],
+                )
+                result["alert_status"] = "sent" if sent else "failed"
+                result["alert_error"] = error
 
     saved, error = await save_price({
         "url": result["url"],
@@ -88,22 +101,20 @@ async def process_result(result: dict):
     return result
 
 @router.get("/check-price")
-async def check_price(url: str):
+async def check_price(url: str, background_tasks: BackgroundTasks):
     raw_result = await scrape_product(url)
-    result = await process_result(raw_result)
+    result = await process_result(raw_result, background_tasks)
     return jsonable_encoder(result)
 
 @router.post("/scan")
-async def scan(data: ScanRequest):
+async def scan(data: ScanRequest, background_tasks: BackgroundTasks):
     raw_results = await scrape_products(data.urls)
-    results = []
-    success_count = 0
-
-    for item in raw_results:
-        processed = await process_result(item)
-        if processed["success"]:
-            success_count += 1
-        results.append(jsonable_encoder(processed))
+    
+    tasks = [process_result(item, background_tasks) for item in raw_results]
+    processed_results = await asyncio.gather(*tasks)
+    
+    results = [jsonable_encoder(p) for p in processed_results]
+    success_count = sum(1 for p in results if p["success"])
 
     return {
         "summary": {
