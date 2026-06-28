@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     REQUEST_TIMEOUT_SECONDS: float = 10.0
     USER_AGENT: str = "Mozilla/5.0 PriceTracker"
     APP_URL: str = "https://pricetracker-zeta-one.vercel.app"
+    
+    RESEND_API_KEY: str = ""
 
     model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".env"), extra="ignore")
 

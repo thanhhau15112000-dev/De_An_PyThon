@@ -1,6 +1,5 @@
-import smtplib
-from email.message import EmailMessage
 import logging
+import resend
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -9,33 +8,32 @@ def send_price_alert_sync(to_email: str, product_name: str, current_price: str, 
     if not to_email:
         return False, "Chua nhap email nhan canh bao."
 
-    if not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
-        return False, "Chua cau hinh SMTP trong file .env."
+    if not settings.RESEND_API_KEY:
+        return False, "Chua cau hinh RESEND_API_KEY trong file .env."
 
-    message = EmailMessage()
-    message["Subject"] = "Price Tracker - Gia da cham target"
-    message["From"] = settings.SMTP_FROM_EMAIL or settings.SMTP_USERNAME
-    message["To"] = to_email
+    resend.api_key = settings.RESEND_API_KEY
 
-    content = f"""
-San pham da cham muc gia muc tieu.
-
-San pham: {product_name}
-Gia hien tai: {current_price}
-Target: {target_price}
-
-Link mua hang: {product_url}
-Xem lich su va bieu do tai: {settings.APP_URL}
-"""
-    message.set_content(content)
+    html_content = f"""
+    <h2>Price Tracker - Gia da cham target</h2>
+    <p>San pham da cham muc gia muc tieu cua ban.</p>
+    <ul>
+        <li><strong>San pham:</strong> {product_name}</li>
+        <li><strong>Gia hien tai:</strong> {current_price}</li>
+        <li><strong>Target:</strong> {target_price}</li>
+    </ul>
+    <p><a href="{product_url}">Link mua hang</a></p>
+    <p><a href="{settings.APP_URL}">Xem lich su va bieu do tai ung dung</a></p>
+    """
 
     try:
-        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
-        server.starttls()
-        server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-        server.send_message(message)
-        server.quit()
+        r = resend.Emails.send({
+            "from": "onboarding@resend.dev",
+            "to": to_email,
+            "subject": "Price Tracker - Gia da cham target",
+            "html": html_content
+        })
         return True, ""
     except Exception as error:
-        logger.error(f"Loi gui email: {error}")
-        return False, str(error)
+        error_msg = str(error)
+        logger.error(f"Loi gui email Resend: {error_msg}")
+        return False, error_msg
