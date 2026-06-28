@@ -677,7 +677,12 @@ if (authForm) {
     }
 
     const endpoint = isLoginMode ? "/api/auth/login" : "/api/auth/register";
+    
+    // Save original text to restore later
+    const originalBtnText = authSubmit.innerHTML;
+    
     authSubmit.disabled = true;
+    authSubmit.innerHTML = `<i class="ph ph-spinner ph-spin"></i> Đang xử lý...`;
     authError.style.display = "none";
     try {
       const res = await fetch(API_BASE_URL + endpoint, {
@@ -702,6 +707,7 @@ if (authForm) {
       generateCaptcha();
     }
     authSubmit.disabled = false;
+    authSubmit.innerHTML = originalBtnText;
   });
 }
 
