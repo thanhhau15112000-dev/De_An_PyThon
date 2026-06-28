@@ -736,6 +736,8 @@ function checkoutSepay(tier) {
   
   const qrUrl = `https://vietqr.app/img?bank=${bank}&acc=${acc}&amount=${amount}&des=${encodeURIComponent(description)}&template=compact&showinfo=true&holder=${encodeURIComponent(holder)}`;
   
+  document.getElementById("qr-loading").style.display = "block";
+  document.getElementById("qr-image").style.display = "none";
   document.getElementById("qr-image").src = qrUrl;
   document.getElementById("qr-description").textContent = description;
   
