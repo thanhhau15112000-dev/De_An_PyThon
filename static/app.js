@@ -705,17 +705,53 @@ if (authForm) {
   });
 }
 
-function checkAuthStatus() {
+function showUpgradeModal() {
   const email = localStorage.getItem("user_email");
-  if (email && authStatus) {
-    authStatus.innerHTML = `<span style="font-size: 0.95rem; font-weight: 500; color: white;"><i class="ph ph-user"></i> ${email}</span>
-                            <button id="btn-logout" class="btn btn-white" style="border-radius: 8px; padding: 4px 8px; margin-left: 8px;" title="Đăng xuất"><i class="ph ph-sign-out" style="font-size: 1.25rem;"></i></button>`;
-    document.getElementById("btn-logout").addEventListener("click", () => {
+  if (email) {
+    document.getElementById("upgrade-syntax").textContent = `UPGRADE ${email}`;
+  }
+  document.getElementById("upgrade-modal-overlay").classList.remove("hidden");
+}
+
+document.getElementById("upgrade-close")?.addEventListener("click", () => {
+  document.getElementById("upgrade-modal-overlay").classList.add("hidden");
+});
+
+async function checkAuthStatus() {
+  const token = localStorage.getItem("token");
+  if (token && authStatus) {
+    try {
+      const res = await fetch("/api/me", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Invalid token");
+      const data = await res.json();
+      const email = data.email;
+      const tier = data.tier.toUpperCase();
+      const usage = `${data.targets_count}/${data.targets_limit}`;
+      
+      let badgeColor = "var(--text-muted)";
+      if (tier === "MAX") badgeColor = "#d97706";
+      if (tier === "PREMIUM") badgeColor = "var(--primary)";
+      
+      authStatus.innerHTML = `
+        <span style="font-size: 0.85rem; font-weight: bold; color: ${badgeColor}; border: 1px solid ${badgeColor}; padding: 2px 8px; border-radius: 12px; margin-right: 8px;" title="Đã dùng ${usage} Target">GÓI ${tier}</span>
+        <span style="font-size: 0.95rem; font-weight: 500; color: white;"><i class="ph ph-user"></i> ${email}</span>
+        <button id="btn-upgrade" class="btn btn-primary" style="border-radius: 8px; padding: 4px 12px; margin-left: 8px; font-size: 0.85rem;"><i class="ph ph-crown"></i> Nâng cấp</button>
+        <button id="btn-logout" class="btn btn-white" style="border-radius: 8px; padding: 4px 8px; margin-left: 8px;" title="Đăng xuất"><i class="ph ph-sign-out" style="font-size: 1.25rem;"></i></button>`;
+        
+      document.getElementById("btn-logout").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user_email");
+        checkAuthStatus();
+        loadWatchlist();
+      });
+      document.getElementById("btn-upgrade").addEventListener("click", showUpgradeModal);
+    } catch(err) {
       localStorage.removeItem("token");
       localStorage.removeItem("user_email");
       checkAuthStatus();
-      loadWatchlist();
-    });
+    }
   } else if (authStatus) {
     authStatus.innerHTML = `<button id="btn-show-login" class="btn btn-outline-white" style="border-radius: 8px; padding: 6px 12px;"><i class="ph ph-user"></i> Đăng nhập</button>`;
     document.getElementById("btn-show-login").addEventListener("click", showAuthModal);

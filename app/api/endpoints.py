@@ -1,5 +1,5 @@
 import asyncio
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.encoders import jsonable_encoder
 from starlette.concurrency import run_in_threadpool
 
@@ -219,3 +219,52 @@ async def create_watch(data: TargetRequest, platform: str = "unknown", product_n
         "target_price": data.target_price,
         "email": current_user,
     }
+
+@router.post("/sepay/webhook")
+async def sepay_webhook(request: Request):
+    from app.database.connection import db_ctx
+    from app.services.analysis import now
+    import re
+    
+    try:
+        data = await request.json()
+    except Exception:
+        return {"status": "error", "message": "Invalid JSON"}
+        
+    content = str(data.get("content", data.get("transactionContent", ""))).upper()
+    try:
+        amount = int(data.get("amountIn", data.get("transferAmount", 0)))
+    except ValueError:
+        amount = 0
+    
+    # Syntax: UPGRADE <email>
+    match = re.search(r'UPGRADE\s+([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})', content)
+    if not match:
+        return {"status": "error", "message": "No UPGRADE syntax found"}
+        
+    email = match.group(1).lower()
+    
+    tier = "free"
+    if amount >= 499000:
+        tier = "max"
+    elif amount >= 49000:
+        tier = "premium"
+    else:
+        return {"status": "error", "message": f"Insufficient amount: {amount}"}
+        
+    db_user = await db_ctx.db["users"].find_one({"email": email})
+    if db_user:
+        await db_ctx.db["users"].update_one(
+            {"email": email},
+            {"$set": {"tier": tier}}
+        )
+        await db_ctx.db["transactions"].insert_one({
+            "email": email,
+            "amount": amount,
+            "tier_upgraded": tier,
+            "content": content,
+            "created_at": now()
+        })
+        return {"status": "success", "message": f"Upgraded {email} to {tier}"}
+    
+    return {"status": "error", "message": "User not found"}
