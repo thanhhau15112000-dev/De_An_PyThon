@@ -12,7 +12,11 @@ async def register(user: UserCreate):
         raise HTTPException(status_code=400, detail="Email already registered")
     
     hashed_password = get_password_hash(user.password)
-    user_dict = {"email": user.email, "hashed_password": hashed_password}
+    user_dict = {
+        "email": user.email, 
+        "hashed_password": hashed_password,
+        "tier": "free"
+    }
     await db_ctx.db["users"].insert_one(user_dict)
     
     access_token = create_access_token(data={"sub": user.email})

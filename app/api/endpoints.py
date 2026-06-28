@@ -162,8 +162,49 @@ async def watchlist(limit: int = 30, current_user: str = Depends(get_current_use
     data = await get_targets(current_user, limit)
     return jsonable_encoder({"items": data, "count": len(data)})
 
+TIER_LIMITS = {
+    "free": 1,
+    "premium": 10,
+    "max": 100
+}
+
+@router.get("/me")
+async def get_me(current_user: str = Depends(get_current_user)):
+    from app.database.connection import db_ctx
+    db_user = await db_ctx.db["users"].find_one({"email": current_user})
+    tier = db_user.get("tier", "free") if db_user else "free"
+    
+    # Get current targets count
+    targets_count = await db_ctx.db["watchlist"].count_documents({"email": current_user})
+    
+    return {
+        "email": current_user,
+        "tier": tier,
+        "targets_count": targets_count,
+        "targets_limit": TIER_LIMITS.get(tier, 1)
+    }
+
 @router.post("/watchlist")
 async def create_watch(data: TargetRequest, platform: str = "unknown", product_name: str = "", current_user: str = Depends(get_current_user)):
+    from app.database.connection import db_ctx
+    from fastapi import HTTPException
+    
+    # Check limit before adding
+    db_user = await db_ctx.db["users"].find_one({"email": current_user})
+    tier = db_user.get("tier", "free") if db_user else "free"
+    limit = TIER_LIMITS.get(tier, 1)
+    
+    # Check if this URL is already in watchlist (updating an existing one doesn't count towards limit)
+    existing = await db_ctx.db["watchlist"].find_one({"url": data.url, "email": current_user})
+    
+    if not existing:
+        current_count = await db_ctx.db["watchlist"].count_documents({"email": current_user})
+        if current_count >= limit:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Đã đạt giới hạn số lượng mục tiêu của gói {tier.upper()} ({limit} mục tiêu). Vui lòng nâng cấp gói cước để thêm sản phẩm mới."
+            )
+
     saved, error = await save_target(
         data.url,
         data.target_price,
