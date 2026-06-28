@@ -266,6 +266,22 @@ async def sepay_webhook(request: Request):
             "created_at": now()
         })
         return {"status": "success", "message": f"Upgraded {email} to {tier}"}
+        
+@router.get("/dev/reset-tier")
+async def reset_tier(email: str):
+    from app.database.connection import db_ctx
+    if not db_ctx.db:
+        return {"status": "error", "message": "Database not initialized"}
+        
+    user = await db_ctx.db.users.find_one({"email": email})
+    if not user:
+        return {"status": "error", "message": "User not found"}
+        
+    await db_ctx.db.users.update_one(
+        {"email": email},
+        {"$set": {"tier": "free"}}
+    )
+    return {"status": "success", "message": f"Đã reset tài khoản {email} về gói FREE. Hãy F5 lại trình duyệt!"}
     
     return {"status": "error", "message": "User not found"}
 
