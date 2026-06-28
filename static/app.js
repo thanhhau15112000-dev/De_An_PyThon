@@ -852,7 +852,7 @@ async function checkAuthStatus() {
       if (tier === "MAX") {
         badgeColor = "#d97706";
       } else if (tier === "PREMIUM") {
-        badgeColor = "var(--primary)";
+        badgeColor = "#ffffff";
       } else if (tier === "FREE") {
         badgeColor = "#ffffff";
         badgeText = "FREE";
