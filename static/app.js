@@ -729,7 +729,7 @@ function checkoutSepay(tier) {
   const amount = tier === "premium" ? 49000 : 499000;
   const description = `UPGRADE ${email}`;
   const bank = "MBBank";
-  const acc = "00000000001";
+  const acc = "TEST000000001"; // Fake account for testing
   
   const qrUrl = `https://vietqr.app/img?bank=${bank}&acc=${acc}&amount=${amount}&des=${encodeURIComponent(description)}&template=compact`;
   
