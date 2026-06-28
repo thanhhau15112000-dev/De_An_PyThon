@@ -237,12 +237,25 @@ async def sepay_webhook(request: Request):
     except ValueError:
         amount = 0
     
-    # Syntax: UPGRADE <email>
-    match = re.search(r'UPGRADE\s+([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})', content)
-    if not match:
+    # Strip all non-alphanumeric chars from content to handle bank mangling
+    clean_content = re.sub(r'[^A-Z0-9]', '', content)
+    
+    if "UPGRADE" not in clean_content:
         return {"status": "error", "message": "No UPGRADE syntax found"}
         
-    email = match.group(1).lower()
+    # Find user
+    users = await db_ctx.db["users"].find({}).to_list(length=1000)
+    matched_email = None
+    for u in users:
+        clean_email = re.sub(r'[^A-Z0-9]', '', str(u.get("email", ""))).upper()
+        if clean_email and clean_email in clean_content:
+            matched_email = u["email"]
+            break
+            
+    if not matched_email:
+        return {"status": "error", "message": "User not found from content"}
+        
+    email = matched_email
     
     tier = "free"
     if amount >= 2999:
