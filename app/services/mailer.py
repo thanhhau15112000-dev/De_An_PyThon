@@ -1,32 +1,17 @@
-import smtplib
-from email.message import EmailMessage
 import logging
-import socket
+import resend
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
-
-class IPv4SMTP(smtplib.SMTP):
-    def _get_socket(self, host, port, timeout):
-        info = socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM)
-        af, socktype, proto, canonname, sa = info[0]
-        s = socket.socket(af, socktype, proto)
-        if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
-            s.settimeout(timeout)
-        s.connect(sa)
-        return s
 
 def send_price_alert_sync(to_email: str, product_name: str, current_price: str, target_price: int, product_url: str):
     if not to_email:
         return False, "Chua nhap email nhan canh bao."
 
-    if not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
-        return False, "Chua cau hinh SMTP trong file .env."
+    if not settings.RESEND_API_KEY:
+        return False, "Chua cau hinh RESEND_API_KEY trong file .env."
 
-    message = EmailMessage()
-    message["Subject"] = "Price Tracker - Gia da cham target"
-    message["From"] = settings.SMTP_FROM_EMAIL or settings.SMTP_USERNAME
-    message["To"] = to_email
+    resend.api_key = settings.RESEND_API_KEY
 
     html_content = f"""
     <h2>Price Tracker - Gia da cham target</h2>
@@ -39,16 +24,16 @@ def send_price_alert_sync(to_email: str, product_name: str, current_price: str, 
     <p><a href="{product_url}">Link mua hang</a></p>
     <p><a href="{settings.APP_URL}">Xem lich su va bieu do tai ung dung</a></p>
     """
-    message.set_content(html_content, subtype='html')
 
     try:
-        server = IPv4SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
-        server.starttls()
-        server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-        server.send_message(message)
-        server.quit()
+        r = resend.Emails.send({
+            "from": "onboarding@resend.dev",
+            "to": to_email,
+            "subject": "Price Tracker - Gia da cham target",
+            "html": html_content
+        })
         return True, ""
     except Exception as error:
         error_msg = str(error)
-        logger.error(f"Loi gui email SMTP: {error_msg}")
+        logger.error(f"Loi gui email Resend: {error_msg}")
         return False, error_msg
