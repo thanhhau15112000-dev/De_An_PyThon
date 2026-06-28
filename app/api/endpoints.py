@@ -240,8 +240,12 @@ async def sepay_webhook(request: Request):
     # Strip all non-alphanumeric chars from content to handle bank mangling
     clean_content = re.sub(r'[^A-Z0-9]', '', content)
     
-    if "UPGRADE" not in clean_content:
-        return {"status": "error", "message": "No UPGRADE syntax found"}
+    # Check if this is a DEGRADE request
+    is_degrade = "DEGRADE" in clean_content
+    is_upgrade = "UPGRADE" in clean_content
+    
+    if not is_upgrade and not is_degrade:
+        return {"status": "error", "message": "No UPGRADE or DEGRADE syntax found"}
         
     # Find user
     users = await db_ctx.db["users"].find({}).to_list(length=1000)
@@ -256,6 +260,13 @@ async def sepay_webhook(request: Request):
         return {"status": "error", "message": "User not found from content"}
         
     email = matched_email
+    
+    if is_degrade:
+        await db_ctx.db["users"].update_one(
+            {"email": email},
+            {"$set": {"tier": "free", "targets_limit": 5}}
+        )
+        return {"status": "success", "message": f"Degraded {email} to free tier"}
     
     tier = "free"
     if amount >= 2999:
