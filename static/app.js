@@ -721,7 +721,7 @@ async function checkAuthStatus() {
   const token = localStorage.getItem("token");
   if (token && authStatus) {
     try {
-      const res = await fetch("/api/me", {
+      const res = await fetch(API_BASE_URL + "/api/me", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Invalid token");
