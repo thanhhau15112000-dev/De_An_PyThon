@@ -757,8 +757,26 @@ function checkoutSepay(tier) {
         const data = await res.json();
         if (data.tier === tier || (tier === 'premium' && data.tier === 'max')) {
           clearInterval(checkUpgradeInterval);
-          alert("Nâng cấp thành công! Chúc mừng bạn đã lên gói " + data.tier.toUpperCase());
-          window.location.reload();
+          
+          const successOverlay = document.createElement("div");
+          successOverlay.className = "sidebar-overlay";
+          successOverlay.style.cssText = "z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); padding: 20px;";
+          successOverlay.innerHTML = `
+            <div style="background: var(--surface); padding: 3rem 2rem; border-radius: 20px; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); transform: scale(0.9); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+              <div style="width: 80px; height: 80px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);">
+                <i class="ph-bold ph-check" style="color: white; font-size: 3rem;"></i>
+              </div>
+              <h2 style="margin: 0 0 10px 0; color: var(--text-main); font-size: 1.8rem;">Thành công!</h2>
+              <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.5;">Chúc mừng bạn đã nâng cấp thành công lên gói <b style="color: var(--primary); font-size: 1.1rem;">${data.tier.toUpperCase()}</b></p>
+              <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 1.1rem; border-radius: 12px; font-weight: bold; box-shadow: 0 8px 16px rgba(var(--primary-rgb), 0.3);" onclick="window.location.reload()">Bắt đầu trải nghiệm ngay</button>
+            </div>
+            <style>
+              @keyframes popIn {
+                to { transform: scale(1); }
+              }
+            </style>
+          `;
+          document.body.appendChild(successOverlay);
         }
       }
     } catch (e) {}

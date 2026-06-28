@@ -163,7 +163,7 @@ async def watchlist(limit: int = 30, current_user: str = Depends(get_current_use
     return jsonable_encoder({"items": data, "count": len(data)})
 
 TIER_LIMITS = {
-    "free": 1,
+    "free": 3,
     "premium": 10,
     "max": 100
 }
@@ -264,7 +264,7 @@ async def sepay_webhook(request: Request):
     if is_degrade:
         await db_ctx.db["users"].update_one(
             {"email": email},
-            {"$set": {"tier": "free", "targets_limit": 5}}
+            {"$set": {"tier": "free", "targets_limit": 3}}
         )
         return {"status": "success", "message": f"Degraded {email} to free tier"}
     
