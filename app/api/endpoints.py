@@ -268,3 +268,9 @@ async def sepay_webhook(request: Request):
         return {"status": "success", "message": f"Upgraded {email} to {tier}"}
     
     return {"status": "error", "message": "User not found"}
+
+@router.post("/force-trigger")
+async def force_trigger(background_tasks: BackgroundTasks):
+    from app.services.scheduler import scan_all_targets_job
+    background_tasks.add_task(scan_all_targets_job, force=True)
+    return {"message": "Đã ép buộc hệ thống khởi chạy quá trình quét giá (Force Trigger). Hãy kiểm tra Terminal Log."}

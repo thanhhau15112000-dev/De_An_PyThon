@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import router as api_router
 from app.api.auth import router as auth_router
 from app.database.connection import connect_to_mongo, close_mongo_connection
+from app.services.scheduler import start_scheduler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting up application...")
     await connect_to_mongo()
+    start_scheduler()
     yield
     # Shutdown
     logger.info("Shutting down application...")
