@@ -10,4 +10,3 @@ python-dotenv==1.0.1
 PyJWT==2.8.0
 passlib==1.7.4
 bcrypt==3.2.2
-resend==2.32.2
