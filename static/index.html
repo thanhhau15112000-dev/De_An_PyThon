@@ -197,9 +197,9 @@
   </div>
 
   <!-- Upgrade Modal -->
-  <div id="upgrade-modal-overlay" class="sidebar-overlay hidden" style="z-index: 1000; display: flex; align-items: center; justify-content: center;">
-    <div class="auth-modal" style="background: var(--surface); padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div id="upgrade-modal-overlay" class="sidebar-overlay hidden" style="z-index: 1000; display: flex; align-items: flex-start; justify-content: center; padding-top: 5vh; overflow-y: auto; padding-bottom: 5vh;">
+    <div class="auth-modal" style="background: var(--surface); padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; position: sticky; top: 0; background: var(--surface); padding-bottom: 10px; z-index: 10;">
         <h2 style="margin: 0; font-size: 1.5rem;">Nâng cấp Gói cước</h2>
         <button id="upgrade-close" class="btn btn-text" style="padding: 4px;"><i class="ph ph-x" style="font-size: 1.25rem;"></i></button>
       </div>
@@ -237,7 +237,7 @@
 
       <div id="upgrade-qr" style="display: none;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <img id="qr-image" src="" alt="QR Code" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border);" />
+          <img id="qr-image" src="" alt="QR Code" style="max-width: 300px; width: 100%; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
         </div>
         <div style="background: var(--bg); padding: 15px; border-radius: 8px; border: 1px dashed var(--border); text-align: center;">
           <p style="margin: 0 0 10px 0; font-weight: bold; color: var(--primary);">Vui lòng giữ nguyên nội dung thanh toán để hệ thống tự động xác nhận</p>

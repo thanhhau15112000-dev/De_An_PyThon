@@ -719,6 +719,8 @@ function closeUpgradeModal() {
   document.getElementById("upgrade-modal").style.display = "none";
 }
 
+let checkUpgradeInterval = null;
+
 function checkoutSepay(tier) {
   const email = localStorage.getItem("user_email");
   if (!email) {
@@ -739,9 +741,30 @@ function checkoutSepay(tier) {
   
   document.getElementById("upgrade-packages").style.display = "none";
   document.getElementById("upgrade-qr").style.display = "block";
+
+  // Start polling
+  if (checkUpgradeInterval) clearInterval(checkUpgradeInterval);
+  checkUpgradeInterval = setInterval(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await fetch(API_BASE_URL + "/api/me", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.tier === tier || (tier === 'premium' && data.tier === 'max')) {
+          clearInterval(checkUpgradeInterval);
+          alert("Nâng cấp thành công! Chúc mừng bạn đã lên gói " + data.tier.toUpperCase());
+          window.location.reload();
+        }
+      }
+    } catch (e) {}
+  }, 3000);
 }
 
 function resetUpgradeModal() {
+  if (checkUpgradeInterval) clearInterval(checkUpgradeInterval);
   document.getElementById("upgrade-packages").style.display = "block";
   document.getElementById("upgrade-qr").style.display = "none";
 }
