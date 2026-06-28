@@ -23,7 +23,9 @@ San pham da cham muc gia muc tieu.
 San pham: {product_name}
 Gia hien tai: {current_price}
 Target: {target_price}
-Link: {product_url}
+
+Link mua hang: {product_url}
+Xem lich su va bieu do tai: {settings.APP_URL}
 """
     message.set_content(content)
 

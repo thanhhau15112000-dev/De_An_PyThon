@@ -48,7 +48,11 @@ async def process_result(result: dict):
     targets = await get_targets_by_url(result["url"])
     for target in targets:
         t_price = target.get("target_price")
-        if result["price_value"] <= t_price:
+        
+        if t_price is not None:
+            result["target_price"] = t_price
+            
+        if t_price is not None and result["price_value"] is not None and result["price_value"] <= t_price:
             result["alert_hit"] = True
             sent, error = await run_in_threadpool(
                 send_price_alert_sync,

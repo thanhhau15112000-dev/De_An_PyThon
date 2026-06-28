@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     
     REQUEST_TIMEOUT_SECONDS: float = 10.0
     USER_AGENT: str = "Mozilla/5.0 PriceTracker"
+    APP_URL: str = "http://localhost:8000"
 
     model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".env"), extra="ignore")
 
