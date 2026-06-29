@@ -518,6 +518,13 @@ async function saveTarget(button) {
       return;
     }
     
+    if (data.saved === false) {
+      alert("Lỗi máy chủ: " + (data.error || "Không thể lưu target"));
+      button.disabled = false;
+      button.textContent = "Lưu Target";
+      return;
+    }
+    
     await loadWatchlist();
     
     // Cập nhật DOM trực tiếp thay vì loadOverview

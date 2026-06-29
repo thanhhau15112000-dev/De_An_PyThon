@@ -17,7 +17,7 @@ async def connect_to_mongo():
     
     try:
         await db_ctx.db["price_history"].create_index("url")
-        await db_ctx.db["watchlist"].create_index("url", unique=True)
+        await db_ctx.db["watchlist"].create_index([("url", 1), ("email", 1)], unique=True)
         logger.info("Connected to MongoDB & verified indexes.")
     except Exception as e:
         logger.warning(f"Failed to create indexes, MongoDB might be down: {e}")
