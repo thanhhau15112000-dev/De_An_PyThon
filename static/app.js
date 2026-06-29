@@ -123,7 +123,7 @@ function renderResults(items) {
             <div style="display: flex; align-items: center; gap: 8px;">
               <span class="badge ${item.target_price ? "good" : "unknown"}">${item.target_price ? "TARGET: " + formatMoney(item.target_price) : "CHƯA CÓ"}</span>
               <button class="btn btn-text" style="padding: 4px; color: var(--primary);" data-toggle-target title="Sửa target"><i class="ph ph-pencil-simple"></i></button>
-              <button class="btn btn-text btn-delete-target ${item.target_price ? "" : "hidden"}" style="padding: 4px; color: var(--text-muted);" onclick="deleteTarget('${escapeHtml(item.url)}')"><i class="ph ph-x"></i></button>
+              <button class="btn btn-text btn-delete-target ${item.target_price ? "" : "hidden"}" style="padding: 4px; color: var(--text-muted); transition: all 0.2s;" onmouseover="this.style.color='var(--primary)'; this.style.transform='scale(1.2)';" onmouseout="this.style.color='var(--text-muted)'; this.style.transform='scale(1)';" onclick="deleteTarget('${escapeHtml(item.url)}')"><i class="ph ph-x"></i></button>
             </div>
             <div class="target-inputs hidden" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
               <input type="text" class="target-input" placeholder="Giá (VD: 1,500,000)" data-target-price />
@@ -286,7 +286,7 @@ function renderWatchlist(data) {
   for (let item of items) {
     html += `
       <div class="watch-card" style="position: relative;">
-        <button onclick="deleteTarget('${escapeHtml(item.url)}')" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;" title="Xóa mục tiêu"><i class="ph ph-x"></i></button>
+        <button onclick="deleteTarget('${escapeHtml(item.url)}')" onmouseover="this.style.color='var(--primary)'; this.style.transform='scale(1.1)';" onmouseout="this.style.color='var(--text-muted)'; this.style.transform='scale(1)';" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; transition: all 0.2s;" title="Xóa mục tiêu"><i class="ph ph-x"></i></button>
         <h3 style="padding-right: 20px;">${escapeHtml(item.product_name || item.platform || "Sản phẩm")}</h3>
         <a href="${escapeHtml(item.url)}" target="_blank" class="url">${escapeHtml(item.url)}</a>
         <div class="target-val">${formatMoney(item.target_price)}</div>
@@ -552,6 +552,7 @@ window.deleteTarget = async function(url) {
     overlay = document.createElement('div');
     overlay.id = 'delete-modal-overlay';
     overlay.className = 'modal-overlay hidden';
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: all 0.3s;';
     overlay.innerHTML = `
       <div id="delete-modal" class="modal-content" style="max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(220,20,60,0.15); border-top: 4px solid var(--primary);">
         <h2 style="color: var(--primary); margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;"><i class="ph-fill ph-trash" style="font-size: 2rem;"></i> Xóa Mục Tiêu</h2>
