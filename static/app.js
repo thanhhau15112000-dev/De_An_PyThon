@@ -684,12 +684,19 @@ if (authForm) {
     authSubmit.disabled = true;
     authSubmit.innerHTML = `<i class="ph ph-spinner ph-spin"></i> Đang xử lý...`;
     authError.style.display = "none";
+    
+    // If it takes more than 3s, likely Render cold start
+    const coldStartTimer = setTimeout(() => {
+      authSubmit.innerHTML = `<i class="ph ph-spinner ph-spin"></i> Đang khởi động máy chủ (chờ 30s)...`;
+    }, 3000);
+    
     try {
       const res = await fetch(API_BASE_URL + endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: authEmail.value, password: authPassword.value })
       });
+      clearTimeout(coldStartTimer);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.detail || "Đăng nhập thất bại");
@@ -702,6 +709,7 @@ if (authForm) {
       // Auto reload resources
       loadWatchlist();
     } catch (err) {
+      clearTimeout(coldStartTimer);
       authError.textContent = err.message === "Failed to fetch" ? "Lỗi kết nối máy chủ, vui lòng thử lại." : err.message;
       authError.style.display = "block";
       generateCaptcha();
@@ -846,7 +854,12 @@ async function checkAuthStatus() {
       const res = await fetch(API_BASE_URL + "/api/me", {
         headers: { "Authorization": `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error("Invalid token");
+      if (res.status === 401) {
+        throw new Error("Invalid token");
+      } else if (!res.ok) {
+        throw new Error("Server Error");
+      }
+      
       const data = await res.json();
       const email = data.email;
       const tier = data.tier.toUpperCase();
@@ -877,9 +890,16 @@ async function checkAuthStatus() {
       });
       document.getElementById("btn-upgrade").addEventListener("click", showUpgradeModal);
     } catch(err) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user_email");
-      checkAuthStatus();
+      if (err.message === "Invalid token") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user_email");
+        authStatus.innerHTML = `<button class="btn btn-outline-white" style="border-radius: 8px; padding: 6px 12px;" onclick="document.getElementById('auth-modal-overlay').classList.remove('hidden')"><i class="ph ph-sign-in"></i> Đăng nhập</button>`;
+        document.getElementById("upgrade-packages").style.display = "block";
+        document.getElementById("upgrade-qr").style.display = "none";
+        if (checkUpgradeInterval) clearInterval(checkUpgradeInterval);
+      } else {
+        authStatus.innerHTML = `<span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;"><i class="ph ph-warning"></i> Máy chủ đang khởi động...</span>`;
+      }
     }
   } else if (authStatus) {
     authStatus.innerHTML = `<button id="btn-show-login" class="btn btn-outline-white" style="border-radius: 8px; padding: 6px 12px;"><i class="ph ph-user"></i> Đăng nhập</button>`;
