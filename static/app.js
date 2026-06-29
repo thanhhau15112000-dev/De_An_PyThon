@@ -486,8 +486,24 @@ async function saveTarget(button) {
       
     if (data.detail) {
       if (data.detail.includes("giới hạn")) {
+        let overlay = document.getElementById('limit-modal-overlay');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'limit-modal-overlay';
+          overlay.className = 'modal-overlay hidden';
+          overlay.innerHTML = `
+            <div id="limit-modal" class="modal-content" style="max-width: 400px; text-align: center;">
+              <h2 style="color: var(--primary); margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;"><i class="ph-fill ph-warning-circle" style="font-size: 2rem;"></i> Đạt giới hạn</h2>
+              <p id="limit-modal-message" style="margin-bottom: 25px; line-height: 1.5; font-size: 1.05rem;"></p>
+              
+              <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-bottom: 12px; font-weight: bold; font-size: 1.1rem; padding: 12px;" onclick="document.getElementById('limit-modal-overlay').classList.add('hidden'); showUpgradeModal();">Nâng cấp ngay</button>
+              <button class="btn" style="width: 100%; justify-content: center; background: #fff0f2; color: var(--primary); border: 1px solid var(--primary); padding: 10px;" onclick="document.getElementById('limit-modal-overlay').classList.add('hidden');">Hủy bỏ</button>
+            </div>
+          `;
+          document.body.appendChild(overlay);
+        }
         document.getElementById('limit-modal-message').textContent = data.detail;
-        document.getElementById('limit-modal-overlay').classList.remove('hidden');
+        overlay.classList.remove('hidden');
       } else {
         alert(data.detail);
       }
