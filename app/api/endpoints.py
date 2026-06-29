@@ -163,9 +163,9 @@ async def watchlist(limit: int = 30, current_user: str = Depends(get_current_use
     return jsonable_encoder({"items": data, "count": len(data)})
 
 TIER_LIMITS = {
-    "free": 3,
-    "premium": 5,
-    "max": 10
+    "free": 1,
+    "premium": 2,
+    "max": 3
 }
 
 @router.get("/me")
@@ -193,7 +193,7 @@ async def create_watch(data: TargetRequest, platform: str = "unknown", product_n
     db_user = await db_ctx.db["users"].find_one({"email": current_user})
     tier = db_user.get("tier", "free") if db_user else "free"
     tier = str(tier).lower().strip()
-    limit = TIER_LIMITS.get(tier, 3)
+    limit = TIER_LIMITS.get(tier, 1)
     
     # Check if this URL is already in watchlist (updating an existing one doesn't count towards limit)
     existing = await db_ctx.db["watchlist"].find_one({"url": data.url, "email": current_user})
