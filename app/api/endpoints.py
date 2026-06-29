@@ -164,8 +164,8 @@ async def watchlist(limit: int = 30, current_user: str = Depends(get_current_use
 
 TIER_LIMITS = {
     "free": 3,
-    "premium": 10,
-    "max": 100
+    "premium": 5,
+    "max": 10
 }
 
 @router.get("/me")
@@ -219,6 +219,17 @@ async def create_watch(data: TargetRequest, platform: str = "unknown", product_n
         "target_price": data.target_price,
         "email": current_user,
     }
+
+@router.delete("/watchlist")
+async def delete_watch(url: str, current_user: str = Depends(get_current_user)):
+    from app.database.connection import db_ctx
+    from fastapi import HTTPException
+    
+    result = await db_ctx.db["watchlist"].delete_one({"url": url, "email": current_user})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Target not found")
+        
+    return {"status": "success", "message": "Target deleted successfully"}
 
 @router.post("/sepay/webhook")
 async def sepay_webhook(request: Request):

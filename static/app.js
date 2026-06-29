@@ -121,12 +121,13 @@ function renderResults(items) {
         <td>
           <div class="target-form">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="badge ${item.alert_hit ? "good" : "unknown"}">${item.target_price ? "Target: " + formatMoney(item.target_price) : "Chưa có target"}</span>
-              <button class="btn btn-text" style="padding: 4px; color: var(--primary);" data-toggle-target title="Cài đặt cảnh báo"><i class="ph ph-pencil-simple"></i></button>
+              <span class="badge ${item.target_price ? "good" : "unknown"}">${item.target_price ? "TARGET: " + formatMoney(item.target_price) : "CHƯA CÓ"}</span>
+              <button class="btn btn-text" style="padding: 4px; color: var(--primary);" data-toggle-target title="Sửa target"><i class="ph ph-pencil-simple"></i></button>
+              <button class="btn btn-text btn-delete-target ${item.target_price ? "" : "hidden"}" style="padding: 4px; color: var(--text-muted);" onclick="deleteTarget('${escapeHtml(item.url)}')"><i class="ph ph-x"></i></button>
             </div>
             <div class="target-inputs hidden" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
-              <input type="text" class="target-input" placeholder="Giá mục tiêu (VD: 1,500,000)" data-target-price />
-              <button class="btn btn-text" style="padding: 6px 0; justify-content: flex-start; color: var(--primary);" data-save-target>Lưu</button>
+              <input type="text" class="target-input" placeholder="Giá (VD: 1,500,000)" data-target-price />
+              <button class="btn btn-text" style="padding: 6px 0; justify-content: flex-start; color: var(--primary);" data-save-target>Lưu Target</button>
             </div>
           </div>
         </td>
@@ -284,8 +285,9 @@ function renderWatchlist(data) {
   let html = "";
   for (let item of items) {
     html += `
-      <div class="watch-card">
-        <h3>${escapeHtml(item.product_name || item.platform || "Sản phẩm")}</h3>
+      <div class="watch-card" style="position: relative;">
+        <button onclick="deleteTarget('${escapeHtml(item.url)}')" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;" title="Xóa mục tiêu"><i class="ph ph-x"></i></button>
+        <h3 style="padding-right: 20px;">${escapeHtml(item.product_name || item.platform || "Sản phẩm")}</h3>
         <a href="${escapeHtml(item.url)}" target="_blank" class="url">${escapeHtml(item.url)}</a>
         <div class="target-val">${formatMoney(item.target_price)}</div>
         <div class="email"><i class="ph ph-envelope-simple"></i> ${escapeHtml(item.email || "Chưa nhập email")}</div>
@@ -473,7 +475,7 @@ async function saveTarget(button) {
   button.textContent = "Đang lưu...";
 
   try {
-    await callApi(`/api/watchlist?platform=auto&product_name=${encodeURIComponent(productName)}`, {
+    const data = await callApi(`/api/watchlist?platform=auto&product_name=${encodeURIComponent(productName)}`, {
         method: "POST",
         body: JSON.stringify({
           url: infoButton.dataset.historyUrl,
@@ -481,19 +483,60 @@ async function saveTarget(button) {
           email: ""
         }),
       });
+      
+    if (data.detail) {
+      alert(data.detail);
+      button.disabled = false;
+      button.textContent = "Lưu Target";
+      return;
+    }
+    
     await loadWatchlist();
     
     // Cập nhật DOM trực tiếp thay vì loadOverview
     const badge = row.querySelector(".target-form .badge");
-    badge.textContent = "Target: " + formatMoney(Number(priceInput.value.replace(/\D/g, "")));
+    badge.textContent = "TARGET: " + formatMoney(Number(priceInput.value.replace(/\D/g, "")));
     badge.className = "badge good";
+    const deleteBtn = row.querySelector(".btn-delete-target");
+    if (deleteBtn) deleteBtn.classList.remove("hidden");
     const inputsDiv = row.querySelector(".target-inputs");
     if (inputsDiv) inputsDiv.classList.add("hidden");
     
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+  }
 
   button.disabled = false;
   button.textContent = "Lưu Target";
+}
+
+window.deleteTarget = async function(url) {
+  if (!confirm("Bạn có chắc chắn muốn xóa mục tiêu này?")) return;
+  try {
+    const data = await callApi(`/api/watchlist?url=${encodeURIComponent(url)}`, { method: "DELETE" });
+    if (data.status === "success") {
+      // Refresh the page or just reload watchlist and rerun scan (easier to just alert and reload if necessary, but we can just reload watchlist and UI)
+      await loadWatchlist();
+      
+      // Update UI in scan results if it's there
+      const scanRows = document.querySelectorAll("#results-body tr");
+      scanRows.forEach(row => {
+        const urlLink = row.querySelector("a[target='_blank']");
+        if (urlLink && urlLink.getAttribute("href") === url) {
+          const badge = row.querySelector(".target-form .badge");
+          if (badge) {
+            badge.textContent = "CHƯA CÓ";
+            badge.className = "badge unknown";
+          }
+          const deleteBtn = row.querySelector(".btn-delete-target");
+          if (deleteBtn) deleteBtn.classList.add("hidden");
+        }
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Có lỗi xảy ra khi xóa mục tiêu.");
+  }
 }
 
 form.addEventListener("submit", async function (event) {
