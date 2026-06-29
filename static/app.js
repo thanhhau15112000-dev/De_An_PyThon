@@ -391,7 +391,9 @@ async function loadHistory(url, productName) {
   if (myChart) myChart.destroy();
 
   const labels = history.map(item => {
-    const d = new Date(item.scraped_at);
+    let ts = item.scraped_at;
+    if (ts && !ts.endsWith('Z')) ts += 'Z';
+    const d = new Date(ts);
     return d.getDate() + '/' + (d.getMonth()+1) + ' ' + d.getHours() + ":" + String(d.getMinutes()).padStart(2, '0');
   });
 
