@@ -45,7 +45,7 @@ async def scan_all_targets_job(force: bool = False):
         targets = await targets_cursor.to_list(length=5000)
         
         urls_to_scrape = set()
-        current_time = datetime.fromisoformat(now())
+        current_time = now()
         
         for target in targets:
             email = target.get("email")
@@ -58,7 +58,15 @@ async def scan_all_targets_job(force: bool = False):
                 urls_to_scrape.add(target["url"])
             else:
                 try:
-                    last_time = datetime.fromisoformat(last_scraped)
+                    if isinstance(last_scraped, str):
+                        last_time = datetime.fromisoformat(last_scraped)
+                    else:
+                        last_time = last_scraped
+                    
+                    # Make last_time timezone-aware if it's naive
+                    if last_time.tzinfo is None:
+                        last_time = last_time.replace(tzinfo=timezone.utc)
+                    
                     delta = (current_time - last_time).total_seconds()
                     if delta >= interval_secs:
                         urls_to_scrape.add(target["url"])

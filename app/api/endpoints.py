@@ -192,7 +192,8 @@ async def create_watch(data: TargetRequest, platform: str = "unknown", product_n
     # Check limit before adding
     db_user = await db_ctx.db["users"].find_one({"email": current_user})
     tier = db_user.get("tier", "free") if db_user else "free"
-    limit = TIER_LIMITS.get(tier, 1)
+    tier = str(tier).lower().strip()
+    limit = TIER_LIMITS.get(tier, 3)
     
     # Check if this URL is already in watchlist (updating an existing one doesn't count towards limit)
     existing = await db_ctx.db["watchlist"].find_one({"url": data.url, "email": current_user})
