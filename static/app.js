@@ -1030,14 +1030,14 @@ window.showLimitToast = function(message) {
   if (!toastContainer) {
     toastContainer = document.createElement('div');
     toastContainer.id = 'toast-container';
-    toastContainer.style.cssText = 'position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none;';
+    toastContainer.style.cssText = 'position: fixed; top: 150px; right: 30px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; pointer-events: none;';
     document.body.appendChild(toastContainer);
   }
   
   const cleanMessage = message.replace('[LIMIT_REACHED]', '').trim();
   
   const toast = document.createElement('div');
-  toast.style.cssText = 'background: #ffffff; color: var(--text-dark); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 40px rgba(220,20,60,0.25); display: flex; align-items: center; gap: 15px; transform: translateY(50px) scale(0.9); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 5px solid var(--primary); font-weight: 500; min-width: 350px; pointer-events: auto;';
+  toast.style.cssText = 'background: #ffffff; color: var(--text-dark); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 40px rgba(220,20,60,0.25); display: flex; align-items: center; gap: 15px; transform: translateX(120%); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 5px solid var(--primary); font-weight: 500; min-width: 350px; max-width: 400px; pointer-events: auto;';
   
   toast.innerHTML = `
     <i class="ph-fill ph-warning-circle" style="color: var(--primary); font-size: 1.8rem;"></i>
@@ -1053,14 +1053,14 @@ window.showLimitToast = function(message) {
   // Animate in
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      toast.style.transform = 'translateY(0) scale(1)';
+      toast.style.transform = 'translateX(0)';
       toast.style.opacity = '1';
     });
   });
   
   // Auto remove after 5 seconds
   setTimeout(() => {
-    toast.style.transform = 'translateY(30px) scale(0.9)';
+    toast.style.transform = 'translateX(120%)';
     toast.style.opacity = '0';
     setTimeout(() => {
       toast.remove();
