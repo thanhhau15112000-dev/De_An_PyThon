@@ -1037,14 +1037,16 @@ window.showLimitToast = function(message) {
   const cleanMessage = message.replace('[LIMIT_REACHED]', '').trim();
   
   const toast = document.createElement('div');
-  toast.style.cssText = 'background: #ffffff; color: var(--text-dark); padding: 10px 15px; border-radius: 8px; box-shadow: 0 5px 20px rgba(220,20,60,0.2); display: flex; align-items: center; gap: 10px; transform: translateX(120%); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 4px solid var(--primary); font-weight: 500; max-width: 350px; pointer-events: auto; font-family: inherit;';
+  toast.style.cssText = 'background: #ffffff; padding: 16px; border-radius: 12px; box-shadow: 0 8px 30px rgba(220,20,60,0.25); display: flex; flex-direction: column; transform: translateX(120%); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 5px solid var(--primary); font-family: "Inter", sans-serif; width: 320px; pointer-events: auto;';
   
   toast.innerHTML = `
-    <i class="ph-fill ph-warning-circle" style="color: var(--primary); font-size: 1.4rem;"></i>
-    <div style="flex: 1; font-size: 0.9rem; line-height: 1.3;">
-        Đã đạt số lượng target tối đa, nếu có nhu cầu hãy nâng cấp thêm
+    <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start;">
+        <i class="ph-fill ph-warning-circle" style="color: var(--primary); font-size: 1.6rem; margin-top: 2px;"></i>
+        <div style="flex: 1; font-size: 0.95rem; line-height: 1.4; color: var(--text-dark);">
+            Đã đạt số lượng target tối đa, nếu có nhu cầu hãy nâng cấp thêm
+        </div>
     </div>
-    <button onclick="showUpgradeModal(); this.parentElement.remove();" class="btn btn-primary" style="padding: 6px 10px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; white-space: nowrap;">Nâng cấp</button>
+    <button onclick="showUpgradeModal(); this.closest('#toast-container > div').remove();" class="btn btn-primary" style="width: 100%; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 1rem; justify-content: center;">Nâng Cấp Ngay</button>
   `;
   
   toastContainer.appendChild(toast);
