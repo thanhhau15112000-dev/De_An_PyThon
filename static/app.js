@@ -485,7 +485,7 @@ async function saveTarget(button) {
       });
       
     if (data.detail) {
-      if (data.detail.includes("giới hạn")) {
+      if (typeof data.detail === 'string' && data.detail.includes("giới hạn")) {
         let overlay = document.getElementById('limit-modal-overlay');
         if (!overlay) {
           overlay = document.createElement('div');
@@ -502,10 +502,16 @@ async function saveTarget(button) {
           `;
           document.body.appendChild(overlay);
         }
-        document.getElementById('limit-modal-message').textContent = data.detail;
+        
+        const msgEl = document.getElementById('limit-modal-message');
+        if (msgEl) msgEl.textContent = data.detail;
+        
         overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
+        overlay.style.visibility = 'visible';
+        overlay.style.opacity = '1';
       } else {
-        alert(data.detail);
+        alert(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail));
       }
       button.disabled = false;
       button.textContent = "Lưu Target";
@@ -516,8 +522,10 @@ async function saveTarget(button) {
     
     // Cập nhật DOM trực tiếp thay vì loadOverview
     const badge = row.querySelector(".target-form .badge");
-    badge.textContent = "TARGET: " + formatMoney(Number(priceInput.value.replace(/\D/g, "")));
-    badge.className = "badge good";
+    if (badge) {
+      badge.textContent = "TARGET: " + formatMoney(Number(priceInput.value.replace(/\D/g, "")));
+      badge.className = "badge good";
+    }
     const deleteBtn = row.querySelector(".btn-delete-target");
     if (deleteBtn) deleteBtn.classList.remove("hidden");
     const inputsDiv = row.querySelector(".target-inputs");
