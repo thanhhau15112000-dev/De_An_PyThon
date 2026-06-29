@@ -90,7 +90,10 @@ async def analyze_price(url: str, current_price: int):
     high_price = stats["high_price"]
     average_price = round(stats["average_price"])
 
-    if current_price <= low_price:
+    if stats["sample_count"] <= 1:
+        signal = "unknown"
+        note = "Chưa đủ dữ liệu lịch sử để phân tích."
+    elif current_price <= low_price:
         signal = "good"
         note = "Gia tot, co the mua."
     elif current_price > average_price:
