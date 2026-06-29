@@ -263,7 +263,17 @@
     </div>
   </div>
 
-  <script src="/app.js?v=19"></script>
+  <div id="limit-modal-overlay" class="modal-overlay hidden">
+    <div id="limit-modal" class="modal-content" style="max-width: 400px; text-align: center;">
+      <h2 style="color: var(--primary); margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;"><i class="ph-fill ph-warning-circle" style="font-size: 2rem;"></i> Đạt giới hạn</h2>
+      <p id="limit-modal-message" style="margin-bottom: 25px; line-height: 1.5; font-size: 1.05rem;">Bạn đã chạm số lượng target tối đa, nếu có nhu cầu hãy nâng cấp.</p>
+      
+      <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-bottom: 12px; font-weight: bold; font-size: 1.1rem; padding: 12px;" onclick="document.getElementById('limit-modal-overlay').classList.add('hidden'); showUpgradeModal();">Nâng cấp ngay</button>
+      <button class="btn" style="width: 100%; justify-content: center; background: #fff0f2; color: var(--primary); border: 1px solid var(--primary); padding: 10px;" onclick="document.getElementById('limit-modal-overlay').classList.add('hidden');">Hủy bỏ</button>
+    </div>
+  </div>
+
+  <script src="/app.js?v=21"></script>
 </body>
 
 </html>

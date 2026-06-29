@@ -485,7 +485,12 @@ async function saveTarget(button) {
       });
       
     if (data.detail) {
-      alert(data.detail);
+      if (data.detail.includes("giới hạn")) {
+        document.getElementById('limit-modal-message').textContent = data.detail;
+        document.getElementById('limit-modal-overlay').classList.remove('hidden');
+      } else {
+        alert(data.detail);
+      }
       button.disabled = false;
       button.textContent = "Lưu Target";
       return;
@@ -922,7 +927,7 @@ async function checkAuthStatus() {
       authStatus.innerHTML = `
         <span style="font-size: 0.85rem; font-weight: bold; color: ${badgeColor}; border: 1px solid ${badgeColor}; padding: 2px 8px; border-radius: 12px; margin-right: 8px;" title="Đã dùng ${usage} Target">${badgeText}</span>
         <span style="font-size: 0.95rem; font-weight: 500; color: white;"><i class="ph ph-user"></i> ${email}</span>
-        <button id="btn-upgrade" class="btn btn-primary" style="border-radius: 8px; padding: 4px 12px; margin-left: 8px; font-size: 0.85rem;"><i class="ph ph-crown"></i> Nâng cấp</button>
+        <button id="btn-upgrade" class="btn btn-primary" style="border-radius: 20px; padding: 6px 16px; margin-left: 8px; font-size: 0.95rem; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 8px rgba(225, 29, 72, 0.4);"><i class="ph ph-crown"></i> Nâng cấp</button>
         <button id="btn-logout" class="btn btn-white" style="border-radius: 8px; padding: 4px 8px; margin-left: 8px;" title="Đăng xuất"><i class="ph ph-sign-out" style="font-size: 1.25rem;"></i></button>`;
         
       document.getElementById("btn-logout").addEventListener("click", () => {
