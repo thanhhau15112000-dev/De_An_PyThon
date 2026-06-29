@@ -13,7 +13,7 @@ async def register(user: UserCreate):
     
     hashed_password = get_password_hash(user.password)
     user_dict = {
-        "email": user.email, 
+        "email": user.email,
         "hashed_password": hashed_password,
         "tier": "free"
     }

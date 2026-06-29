@@ -1,8 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.database.connection import db_ctx
 
 def now():
-    return datetime.now(timezone.utc)
+    # Use Vietnam Time (UTC+7)
+    return datetime.now(timezone(timedelta(hours=7)))
 
 def remove_id(document):
     if document is None:
