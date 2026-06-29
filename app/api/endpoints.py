@@ -203,7 +203,7 @@ async def create_watch(data: TargetRequest, platform: str = "unknown", product_n
         if current_count >= limit:
             raise HTTPException(
                 status_code=400, 
-                detail=f"Đã đạt giới hạn số lượng mục tiêu của gói {tier.upper()} ({limit} mục tiêu). Vui lòng nâng cấp gói cước để thêm sản phẩm mới."
+                detail=f"Đã đạt giới hạn số lượng mục tiêu của gói {tier.upper()} ({limit} mục tiêu). Vui lòng nâng cấp gói cước để thêm sản phẩm mới. [LIMIT_REACHED]"
             )
 
     saved, error = await save_target(

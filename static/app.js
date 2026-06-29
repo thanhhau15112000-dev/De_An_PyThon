@@ -485,7 +485,7 @@ async function saveTarget(button) {
       });
       
     if (data.detail) {
-      if (typeof data.detail === 'string' && data.detail.includes("giới hạn")) {
+      if (typeof data.detail === 'string' && (data.detail.includes("giới hạn") || data.detail.includes("LIMIT_REACHED"))) {
         let overlay = document.getElementById('limit-modal-overlay');
         if (!overlay) {
           overlay = document.createElement('div');
