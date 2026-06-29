@@ -486,30 +486,7 @@ async function saveTarget(button) {
       
     if (data.detail) {
       if (typeof data.detail === 'string' && (data.detail.includes("giới hạn") || data.detail.includes("LIMIT_REACHED"))) {
-        let overlay = document.getElementById('limit-modal-overlay');
-        if (!overlay) {
-          overlay = document.createElement('div');
-          overlay.id = 'limit-modal-overlay';
-          overlay.className = 'modal-overlay hidden';
-          overlay.innerHTML = `
-            <div id="limit-modal" class="modal-content" style="max-width: 400px; text-align: center;">
-              <h2 style="color: var(--primary); margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;"><i class="ph-fill ph-warning-circle" style="font-size: 2rem;"></i> Đạt giới hạn</h2>
-              <p id="limit-modal-message" style="margin-bottom: 25px; line-height: 1.5; font-size: 1.05rem;"></p>
-              
-              <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-bottom: 12px; font-weight: bold; font-size: 1.1rem; padding: 12px;" onclick="document.getElementById('limit-modal-overlay').classList.add('hidden'); showUpgradeModal();">Nâng cấp ngay</button>
-              <button class="btn" style="width: 100%; justify-content: center; background: #fff0f2; color: var(--primary); border: 1px solid var(--primary); padding: 10px;" onclick="document.getElementById('limit-modal-overlay').classList.add('hidden');">Hủy bỏ</button>
-            </div>
-          `;
-          document.body.appendChild(overlay);
-        }
-        
-        const msgEl = document.getElementById('limit-modal-message');
-        if (msgEl) msgEl.textContent = data.detail;
-        
-        overlay.classList.remove('hidden');
-        overlay.style.display = 'flex';
-        overlay.style.visibility = 'visible';
-        overlay.style.opacity = '1';
+        showLimitToast(data.detail);
       } else {
         alert(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail));
       }
@@ -1042,3 +1019,51 @@ async function checkAuthStatus() {
 checkAuthStatus();
 renderResults([]);
 loadWatchlist();
+
+let lastToastTime = 0;
+window.showLimitToast = function(message) {
+  const now = Date.now();
+  if (now - lastToastTime < 10000) return; // Throttling: 1 per 10s
+  lastToastTime = now;
+  
+  let toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.style.cssText = 'position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none;';
+    document.body.appendChild(toastContainer);
+  }
+  
+  const cleanMessage = message.replace('[LIMIT_REACHED]', '').trim();
+  
+  const toast = document.createElement('div');
+  toast.style.cssText = 'background: #ffffff; color: var(--text-dark); padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 40px rgba(220,20,60,0.25); display: flex; align-items: center; gap: 15px; transform: translateY(50px) scale(0.9); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 5px solid var(--primary); font-weight: 500; min-width: 350px; pointer-events: auto;';
+  
+  toast.innerHTML = `
+    <i class="ph-fill ph-warning-circle" style="color: var(--primary); font-size: 1.8rem;"></i>
+    <div style="flex: 1;">
+        <h4 style="margin: 0 0 5px 0; color: var(--primary); font-size: 1.05rem;">Vượt quá giới hạn</h4>
+        <div style="font-size: 0.95rem; line-height: 1.4;">${cleanMessage}</div>
+    </div>
+    <button onclick="showUpgradeModal(); this.parentElement.remove();" class="btn btn-primary" style="padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 0.9rem;">Nâng cấp</button>
+  `;
+  
+  toastContainer.appendChild(toast);
+  
+  // Animate in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      toast.style.transform = 'translateY(0) scale(1)';
+      toast.style.opacity = '1';
+    });
+  });
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    toast.style.transform = 'translateY(30px) scale(0.9)';
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      toast.remove();
+    }, 400);
+  }, 5000);
+}
