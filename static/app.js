@@ -540,7 +540,44 @@ async function saveTarget(button) {
 }
 
 window.deleteTarget = async function(url) {
-  if (!confirm("Bạn có chắc chắn muốn xóa mục tiêu này?")) return;
+  let overlay = document.getElementById('delete-modal-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'delete-modal-overlay';
+    overlay.className = 'modal-overlay hidden';
+    overlay.innerHTML = `
+      <div id="delete-modal" class="modal-content" style="max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(220,20,60,0.15); border-top: 4px solid var(--primary);">
+        <h2 style="color: var(--primary); margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;"><i class="ph-fill ph-trash" style="font-size: 2rem;"></i> Xóa Mục Tiêu</h2>
+        <p style="margin-bottom: 25px; line-height: 1.5; font-size: 1.05rem; color: var(--text-dark);">Bạn có chắc chắn muốn xóa mục tiêu này khỏi danh sách theo dõi không?</p>
+        
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-cancel-delete" class="btn" style="flex: 1; justify-content: center; background: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border); padding: 12px; font-weight: bold;">Hủy bỏ</button>
+          <button id="btn-confirm-delete" class="btn btn-primary" style="flex: 1; justify-content: center; margin: 0; padding: 12px; font-weight: bold; font-size: 1.05rem;">Xóa luôn</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+  
+  overlay.classList.remove('hidden');
+  overlay.style.display = 'flex';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+
+  const confirmed = await new Promise((resolve) => {
+    document.getElementById('btn-confirm-delete').onclick = () => {
+      overlay.classList.add('hidden');
+      setTimeout(() => { overlay.style.display = 'none'; }, 300);
+      resolve(true);
+    };
+    document.getElementById('btn-cancel-delete').onclick = () => {
+      overlay.classList.add('hidden');
+      setTimeout(() => { overlay.style.display = 'none'; }, 300);
+      resolve(false);
+    };
+  });
+
+  if (!confirmed) return;
   try {
     const data = await callApi(`/api/watchlist?url=${encodeURIComponent(url)}`, { method: "DELETE" });
     if (data.status === "success") {
