@@ -1,4 +1,4 @@
-# Price Tracker & AI Financial Assistant (Đồ án Kiến trúc Phần mềm)
+# Price Tracker & AI Financial Assistant (Đồ án Python)
 
 ## 1. Tổng Quan Dự Án
 **Price Tracker** là một hệ thống theo dõi và phân tích biến động giá cả trên các nền tảng thương mại điện tử, được phát triển với mục tiêu hỗ trợ người dùng đưa ra quyết định mua sắm tối ưu. Thay vì chỉ cung cấp biểu đồ lịch sử giá đơn thuần, hệ thống được tích hợp **Module Phân Tích Thông Minh** (dựa trên thống kê lịch sử) và **Mô hình Ngôn ngữ Lớn (LLMs)**, đóng vai trò như một chuyên gia tư vấn tài chính ảo.
